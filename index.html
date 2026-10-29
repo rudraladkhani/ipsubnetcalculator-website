@@ -1,0 +1,4025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SubnetForge — Visual IPv4 Subnet Calculator & CIDR Architect</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+/* ==========================================================================
+   SubnetForge - Modern High-Tech Networking UI & Visualizer Styles
+   ========================================================================== */
+
+:root {
+  --bg-primary: #080c14;
+  --bg-secondary: #0f172a;
+  --bg-surface: rgba(17, 24, 39, 0.75);
+  --bg-surface-elevated: rgba(30, 41, 59, 0.85);
+  --bg-card: rgba(15, 23, 42, 0.65);
+  
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-active: rgba(6, 182, 212, 0.45);
+  --border-focus: #06b6d4;
+
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --text-cyan: #22d3ee;
+  --text-purple: #c084fc;
+  --text-emerald: #34d399;
+  --text-amber: #fbbf24;
+  --text-rose: #fb7185;
+
+  --accent-cyan: #06b6d4;
+  --accent-purple: #8b5cf6;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-rose: #f43f5e;
+
+  --cyan-glow: 0 0 20px rgba(6, 182, 212, 0.28);
+  --purple-glow: 0 0 20px rgba(139, 92, 246, 0.28);
+  --emerald-glow: 0 0 20px rgba(16, 185, 129, 0.28);
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Consolas, Monaco, monospace;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-full: 9999px;
+  
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+}
+
+#networkCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.85;
+}
+
+.app-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+.glass-panel {
+  background: var(--bg-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  padding: 16px 24px;
+  border-radius: var(--radius-lg);
+}
+
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.45);
+}
+
+.logo-icon-wrapper svg {
+  width: 26px;
+  height: 26px;
+  stroke: #ffffff;
+}
+
+.logo-text h1 {
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #f8fafc 30%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.logo-text p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  border-color: var(--border-active);
+}
+
+.action-btn.active {
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--text-cyan);
+  border-color: var(--accent-cyan);
+}
+
+/* Control Hub */
+.control-hub {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.presets-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.presets-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.preset-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.preset-chip:hover {
+  background: rgba(6, 182, 212, 0.12);
+  color: var(--text-cyan);
+  border-color: var(--accent-cyan);
+  transform: translateY(-1px);
+}
+
+.input-primary-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 900px) {
+  .input-primary-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.input-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.field-badge {
+  font-size: 0.74rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.input-glow-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(10, 15, 26, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 4px 14px;
+  transition: all var(--transition-fast);
+}
+
+.input-glow-box:focus-within {
+  border-color: var(--accent-cyan);
+  box-shadow: var(--cyan-glow);
+}
+
+.input-glow-box input {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 600;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.ip-quick-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.mini-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.mini-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* Slider */
+.slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.slider-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cidr-pill-display {
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--text-cyan);
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.cidr-slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #06b6d4 0%, #8b5cf6 65%, #334155 100%);
+  outline: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.cidr-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #06b6d4;
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.8);
+  cursor: grab;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.cidr-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 18px rgba(6, 182, 212, 1);
+}
+
+.slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+/* Scope Bar */
+.scope-meta-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.82rem;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.meta-value {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+/* Tabs Navigation */
+.tabs-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 24px;
+  padding-bottom: 2px;
+  overflow-x: auto;
+}
+
+.tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  padding: 10px 18px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tab-btn.active {
+  color: var(--text-cyan);
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #06b6d4, #8b5cf6);
+  border-radius: 3px 3px 0 0;
+  box-shadow: 0 0 10px var(--accent-cyan);
+}
+
+.tab-content-panel {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.tab-content-panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Results Grid */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.result-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+}
+
+.result-card:hover {
+  border-color: rgba(6, 182, 212, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.card-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.copy-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.copy-btn:hover {
+  color: var(--text-cyan);
+  background: rgba(6, 182, 212, 0.1);
+}
+
+.card-value {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  word-break: break-all;
+  margin-bottom: 6px;
+}
+
+.card-subtext {
+  font-size: 0.74rem;
+  color: var(--text-dim);
+}
+
+.result-card.highlight-cyan { border-left: 3px solid var(--accent-cyan); }
+.result-card.highlight-purple { border-left: 3px solid var(--accent-purple); }
+.result-card.highlight-emerald { border-left: 3px solid var(--accent-emerald); }
+.result-card.highlight-amber { border-left: 3px solid var(--accent-amber); }
+
+/* Visualizer Panels */
+.visualizer-section {
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.8rem;
+}
+
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dot-network { background: #06b6d4; box-shadow: 0 0 8px #06b6d4; }
+.dot-subnet { background: #8b5cf6; box-shadow: 0 0 8px #8b5cf6; }
+.dot-host { background: #10b981; box-shadow: 0 0 8px #10b981; }
+
+.bit-matrix-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1100px) {
+  .bit-matrix-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .bit-matrix-grid { grid-template-columns: 1fr; }
+}
+
+.octet-group {
+  padding: 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.octet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.octet-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.octet-values {
+  display: flex;
+  gap: 6px;
+}
+
+.bits-row {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.bit-card {
+  position: relative;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 6px 2px;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.bit-card:hover {
+  transform: translateY(-2px);
+  z-index: 10;
+  border-color: #fff;
+}
+
+.bit-pos {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  margin-bottom: 2px;
+}
+
+.bit-val {
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+}
+
+.val-one { color: #ffffff; }
+.val-zero { color: #64748b; }
+
+.bit-weight {
+  font-size: 0.58rem;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+
+.bit-card.bit-network {
+  background: rgba(6, 182, 212, 0.14);
+  border-color: rgba(6, 182, 212, 0.45);
+}
+
+.bit-card.bit-network .val-one {
+  color: #22d3ee;
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.7);
+}
+
+.bit-card.bit-subnet {
+  background: rgba(139, 92, 246, 0.16);
+  border-color: rgba(139, 92, 246, 0.55);
+}
+
+.bit-card.bit-subnet .val-one {
+  color: #c084fc;
+  text-shadow: 0 0 8px rgba(192, 132, 252, 0.8);
+}
+
+.bit-card.bit-host {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.bit-card.bit-host .val-one { color: #34d399; }
+
+.bit-card.boundary-bit {
+  box-shadow: 2px 0 0 0 #06b6d4, 0 0 12px rgba(6, 182, 212, 0.6);
+}
+
+.bit-hover-info {
+  display: none;
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  border: 1px solid var(--accent-cyan);
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 0.68rem;
+  color: #fff;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+  z-index: 20;
+}
+
+.bit-card:hover .bit-hover-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.octet-footer {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--text-dim);
+  border-top: 1px dashed rgba(255, 255, 255, 0.06);
+  padding-top: 6px;
+}
+
+/* Bitwise AND flow */
+.bitwise-equation {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(10, 15, 26, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  font-family: var(--font-mono);
+}
+
+.bitwise-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bitwise-label { min-width: 140px; }
+
+.bitwise-octets-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.bitwise-octet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bitwise-octet-bits {
+  letter-spacing: 2px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.bitwise-bit.net-colored { color: #22d3ee; }
+.bitwise-bit.host-colored { color: #64748b; }
+
+.bitwise-octet-dec {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.bitwise-dot {
+  color: var(--text-dim);
+  font-size: 1.2rem;
+}
+
+.bitwise-operator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 20px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.operator-symbol {
+  background: rgba(139, 92, 246, 0.2);
+  color: var(--text-purple);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.bitwise-divider {
+  height: 2px;
+  background: linear-gradient(90deg, #06b6d4, #8b5cf6, transparent);
+  margin: 4px 0;
+}
+
+.bitwise-footer-legend {
+  display: flex;
+  gap: 20px;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.legend-swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 4px;
+}
+
+.legend-swatch.cyan { background: #22d3ee; }
+.legend-swatch.dim { background: #64748b; }
+
+/* Spectrum Bar */
+.spectrum-card {
+  background: rgba(10, 15, 26, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+
+.spectrum-bar-wrapper { margin-bottom: 20px; }
+
+.spectrum-bar {
+  display: flex;
+  height: 38px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.spectrum-slice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #fff;
+  transition: width 0.4s ease;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0 6px;
+}
+
+.slice-net { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+.slice-hosts { background: linear-gradient(135deg, #06b6d4, #10b981); }
+.slice-bcast { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+.spectrum-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.spec-detail-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spec-detail-box.net-box { border-left: 3px solid #f43f5e; }
+.spec-detail-box.host-box { border-left: 3px solid #10b981; }
+.spec-detail-box.bcast-box { border-left: 3px solid #f59e0b; }
+
+.spec-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.spec-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.spec-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Slicer */
+.slicer-control-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.slicer-selector select {
+  background: #0f172a;
+  border: 1px solid var(--border-active);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+}
+
+.slicer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.slice-block-card {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.slice-block-card:hover {
+  border-color: var(--accent-cyan);
+  background: rgba(6, 182, 212, 0.08);
+  transform: translateY(-2px);
+}
+
+.slice-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.slice-badge {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.slice-net {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-cyan);
+}
+
+.slice-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+}
+
+.slice-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.slice-row .k { color: var(--text-dim); }
+.slice-row .v { color: var(--text-main); }
+
+.slicer-overflow-note {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-top: 12px;
+}
+
+/* VLSM */
+.vlsm-summary-bar {
+  display: flex;
+  justify-content: space-around;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.vlsm-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.vlsm-m-label {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.vlsm-m-val {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.vlsm-visual-strip-wrapper { margin-bottom: 20px; }
+
+.vlsm-visual-strip {
+  display: flex;
+  height: 36px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.5);
+}
+
+.vlsm-bar-slice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 0 4px;
+  transition: width 0.3s ease;
+  border-right: 1px solid rgba(0,0,0,0.3);
+}
+
+.vlsm-slice-free {
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(30, 41, 59, 0.8),
+    rgba(30, 41, 59, 0.8) 10px,
+    rgba(51, 65, 85, 0.8) 10px,
+    rgba(51, 65, 85, 0.8) 20px
+  );
+  color: var(--text-muted);
+}
+
+.vlsm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.vlsm-table th, .vlsm-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.vlsm-table th {
+  color: var(--text-dim);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.vlsm-inputs-form {
+  margin-bottom: 20px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+
+.vlsm-req-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.vlsm-req-row input {
+  background: #0b0f19;
+  border: 1px solid var(--border-subtle);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  outline: none;
+  font-size: 0.85rem;
+}
+
+.vlsm-req-row input:focus { border-color: var(--accent-cyan); }
+.vlsm-req-row .dept-name { flex: 2; }
+.vlsm-req-row .dept-hosts { flex: 1; }
+
+.remove-req-btn {
+  background: rgba(244, 63, 94, 0.15);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  color: var(--text-rose);
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+/* Config Block */
+.config-block {
+  background: #090d16;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.config-code {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: #38bdf8;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.5;
+}
+
+/* Toast */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast {
+  background: #0f172a;
+  border: 1px solid var(--accent-cyan);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: slideInUp 0.25s ease, fadeOut 0.25s ease 2.75s forwards;
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.badge-cyan { background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3); }
+.badge-purple { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); }
+.badge-emerald { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-amber { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-dim { background: rgba(255, 255, 255, 0.08); color: var(--text-muted); }
+
+.tag {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+}
+
+.tag-cyan { background: rgba(6, 182, 212, 0.2); color: #22d3ee; }
+.tag-dim { background: rgba(255, 255, 255, 0.06); color: var(--text-dim); }
+
+.mono { font-family: var(--font-mono); }
+.text-cyan { color: var(--text-cyan); }
+.text-purple { color: var(--text-purple); }
+.text-emerald { color: var(--text-emerald); }
+.text-amber { color: var(--text-amber); }
+.text-rose { color: var(--text-rose); }
+.text-light { color: #ffffff; }
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.4);
+}
+
+/* ==========================================================================
+   Visual PC Network Topology & Packet Flow Simulator Styles
+   ========================================================================== */
+
+.topo-control-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.topo-meta-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topo-live-pulse {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulseDot 1.8s infinite ease-in-out;
+}
+
+@keyframes pulseDot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.65; box-shadow: 0 0 16px #10b981; }
+}
+
+.topo-heading {
+  font-size: 1.05rem;
+  color: var(--text-main);
+  display: block;
+}
+
+.topo-sub {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.topo-sim-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sim-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all var(--transition-fast);
+}
+
+.sim-btn:hover {
+  transform: translateY(-2px);
+}
+
+.sim-btn.sim-local {
+  border-color: rgba(6, 182, 212, 0.4);
+  color: #22d3ee;
+}
+.sim-btn.sim-local:hover {
+  background: rgba(6, 182, 212, 0.15);
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.4);
+}
+
+.sim-btn.sim-wan {
+  border-color: rgba(139, 92, 246, 0.4);
+  color: #c084fc;
+}
+.sim-btn.sim-wan:hover {
+  background: rgba(139, 92, 246, 0.15);
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.4);
+}
+
+.sim-btn.sim-bcast {
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+}
+.sim-btn.sim-bcast:hover {
+  background: rgba(245, 158, 11, 0.15);
+  box-shadow: 0 0 16px rgba(245, 158, 11, 0.4);
+}
+
+.topo-canvas-container {
+  position: relative;
+  background: radial-gradient(circle at 50% 20%, rgba(30, 41, 59, 0.5) 0%, rgba(10, 15, 26, 0.95) 80%);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 24px 20px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.topo-tier {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 36px;
+  position: relative;
+  z-index: 2;
+}
+
+.topo-cable-vertical {
+  width: 2px;
+  height: 28px;
+  background: linear-gradient(180deg, #06b6d4, #8b5cf6);
+  margin: 0 auto;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+  position: relative;
+}
+
+.topo-subnet-domain-box {
+  border: 2px dashed rgba(6, 182, 212, 0.45);
+  border-radius: var(--radius-lg);
+  background: rgba(6, 182, 212, 0.02);
+  padding: 18px;
+  margin-top: 4px;
+  position: relative;
+  box-shadow: inset 0 0 24px rgba(6, 182, 212, 0.05);
+}
+
+.domain-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-bottom: 1px dashed rgba(6, 182, 212, 0.2);
+  padding-bottom: 10px;
+}
+
+.domain-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.domain-tags {
+  display: flex;
+  gap: 8px;
+}
+
+.topo-switch-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.topo-svg-cables {
+  width: 100%;
+  height: 50px;
+  display: block;
+}
+
+.topo-hosts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 4px;
+}
+
+@media (max-width: 950px) {
+  .topo-hosts-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 550px) {
+  .topo-hosts-grid { grid-template-columns: 1fr; }
+}
+
+.domain-footer-note {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.06);
+}
+
+.topo-node-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(12px);
+  position: relative;
+  min-width: 180px;
+}
+
+.topo-node-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(6, 182, 212, 0.6);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.node-icon-bubble {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.node-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.node-name {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+}
+
+.node-ip {
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.node-role {
+  font-size: 0.68rem;
+}
+
+.node-gateway {
+  border-color: rgba(6, 182, 212, 0.4);
+  background: rgba(6, 182, 212, 0.08);
+  min-width: 260px;
+}
+
+.node-switch {
+  border-color: rgba(139, 92, 246, 0.4);
+  background: rgba(139, 92, 246, 0.08);
+  min-width: 240px;
+}
+
+.node-remote-host {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.node-wan {
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.topo-node-card.active-inspected {
+  border-color: #06b6d4 !important;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.6) !important;
+}
+
+.topo-node-card.node-active-pulse {
+  animation: nodePulseGlow 1.2s infinite alternate ease-in-out;
+}
+
+@keyframes nodePulseGlow {
+  0% {
+    border-color: #22d3ee;
+    box-shadow: 0 0 8px rgba(34, 211, 238, 0.5);
+    transform: scale(1);
+  }
+  100% {
+    border-color: #38bdf8;
+    box-shadow: 0 0 24px rgba(56, 189, 248, 0.95);
+    transform: scale(1.03);
+  }
+}
+
+.topo-info-split {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .topo-info-split { grid-template-columns: 1fr; }
+}
+
+.topo-log-panel {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.log-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 10px;
+}
+
+.log-title {
+  display: flex;
+  align-items: center;
+  font-size: 0.84rem;
+}
+
+.terminal-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+.terminal-dot.red { background: #f43f5e; }
+.terminal-dot.yellow { background: #f59e0b; }
+.terminal-dot.green { background: #10b981; }
+
+.log-panel-body {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.log-entry {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(10, 15, 26, 0.75);
+  border-left: 3px solid var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: logSlide 0.2s ease-out;
+}
+
+@keyframes logSlide {
+  from { opacity: 0; transform: translateX(-6px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.log-entry.log-cyan { border-left-color: #06b6d4; background: rgba(6, 182, 212, 0.08); }
+.log-entry.log-purple { border-left-color: #8b5cf6; background: rgba(139, 92, 246, 0.08); }
+.log-entry.log-emerald { border-left-color: #10b981; background: rgba(16, 185, 129, 0.08); }
+.log-entry.log-amber { border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.08); }
+.log-entry.log-rose { border-left-color: #f43f5e; background: rgba(244, 63, 94, 0.08); }
+
+.log-time {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.log-title {
+  color: var(--text-main);
+  font-size: 0.8rem;
+}
+
+.log-detail {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+.topo-inspector-panel {
+  padding: 16px;
+}
+
+.inspector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 10px;
+}
+
+.inspector-title {
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.inspector-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inspector-prop-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.prop-key {
+  color: var(--text-dim);
+}
+
+.prop-val {
+  color: var(--text-main);
+}
+
+.inspector-desc {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  margin-top: 6px;
+  line-height: 1.45;
+}
+
+
+</style>
+</head>
+<body>
+
+  <!-- Ambient Network Grid & Packet Flow Background -->
+  <canvas id="networkCanvas"></canvas>
+
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header glass-panel">
+      <div class="logo-group">
+        <div class="logo-icon-wrapper">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="2" width="6" height="6" rx="1.5"></rect>
+            <rect x="16" y="2" width="6" height="6" rx="1.5"></rect>
+            <rect x="16" y="16" width="6" height="6" rx="1.5"></rect>
+            <rect x="2" y="16" width="6" height="6" rx="1.5"></rect>
+            <path d="M5 8v8"></path>
+            <path d="M19 8v8"></path>
+            <path d="M8 5h8"></path>
+            <path d="M8 19h8"></path>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1>SubnetForge</h1>
+          <p>Interactive IPv4 Subnet Calculator &amp; Visual Bit Architect</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="bgToggleBtn" class="action-btn active" title="Toggle Background Network Motion">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Grid Flow</span>
+        </button>
+        <button class="action-btn" onclick="window.copyToClipboard(window.location.href, 'Shareable Link')" title="Copy Link with Current Settings">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          <span>Share</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Control Hub -->
+    <section class="control-hub glass-panel">
+      
+      <!-- Presets Ribbon -->
+      <div class="presets-ribbon">
+        <span class="presets-label">Quick Presets:</span>
+        <button class="preset-chip" onclick="window.setPreset('192.168.1.1', 24)">192.168.1.1 /24 (Home LAN)</button>
+        <button class="preset-chip" onclick="window.setPreset('10.0.0.0', 16)">10.0.0.0 /16 (Cloud VPC)</button>
+        <button class="preset-chip" onclick="window.setPreset('172.16.0.0', 12)">172.16.0.0 /12 (Container Net)</button>
+        <button class="preset-chip" onclick="window.setPreset('192.168.1.0', 26)">/26 (64 IPs Sliced)</button>
+        <button class="preset-chip" onclick="window.setPreset('10.10.10.1', 28)">/28 (Small Office)</button>
+        <button class="preset-chip" onclick="window.setPreset('172.20.1.1', 30)">/30 (Router P2P)</button>
+        <button class="preset-chip" onclick="window.setPreset('127.0.0.1', 8)">127.0.0.1 /8 (Loopback)</button>
+      </div>
+
+      <!-- Primary Inputs Row -->
+      <div class="input-primary-row">
+        
+        <!-- IP Address Field -->
+        <div class="input-field-group">
+          <div class="field-label">
+            <span>IPv4 Address</span>
+            <span id="ipStatusBadge" class="field-badge badge-emerald">Private</span>
+          </div>
+          <div class="input-glow-box">
+            <input type="text" id="ipInput" value="192.168.1.1" placeholder="e.g. 192.168.1.1" autocomplete="off" spellcheck="false">
+            <div class="ip-quick-buttons">
+              <button class="mini-btn" onclick="window.setPreset('192.168.1.1', 24)">Default</button>
+              <button class="mini-btn" onclick="window.setPreset('10.0.0.1', 24)">10.0.x</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CIDR Slider & Mask Selector -->
+        <div class="input-field-group">
+          <div class="slider-header-row">
+            <label class="field-label" for="cidrSlider">
+              <span>Subnet Mask / CIDR Prefix</span>
+            </label>
+            <span id="cidrDisplay" class="cidr-pill-display">/24</span>
+          </div>
+
+          <div class="slider-container">
+            <input type="range" id="cidrSlider" class="cidr-slider" min="0" max="32" value="24" step="1">
+            <div class="slider-ticks">
+              <span>/0 (Internet)</span>
+              <span>/8 (Class A)</span>
+              <span>/16 (Class B)</span>
+              <span>/24 (Class C)</span>
+              <span>/30 (P2P)</span>
+              <span>/32</span>
+            </div>
+          </div>
+
+          <div class="slicer-selector" style="margin-top: 6px;">
+            <select id="cidrDropdown" style="width: 100%;"></select>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Scope & Bit Division Summary Bar -->
+      <div class="scope-meta-bar">
+        <div class="meta-item">
+          <span>Class:</span>
+          <strong id="metaIpClass" class="meta-value text-cyan">Class C</strong>
+        </div>
+        <div class="meta-item">
+          <span>Scope:</span>
+          <strong id="metaIpScope" class="meta-value text-emerald">Private (RFC 1918)</strong>
+        </div>
+        <div class="meta-item">
+          <span>Subnet Bits (Borrowed):</span>
+          <strong id="metaBorrowedBits" class="meta-value text-purple">0 bits</strong>
+        </div>
+        <div class="meta-item">
+          <span>Host Bits:</span>
+          <strong id="metaHostBits" class="meta-value text-amber">8 bits</strong>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Core Results Grid -->
+    <section class="results-grid">
+      
+      <!-- Network Address -->
+      <div class="result-card highlight-cyan" id="cardNetworkAddress">
+        <div class="card-top">
+          <span class="card-label">Network Address (ID)</span>
+          <button class="copy-btn" onclick="window.copyToClipboard(document.querySelector('#cardNetworkAddress .card-value').textContent, 'Network Address')" title="Copy Network Address">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </button>
+        </div>
+        <div class="card-value">192.168.1.0</div>
+        <div class="card-subtext">First address &bull; Wire ID</div>
+      </div>
+
+      <!-- Subnet Mask -->
+      <div class="result-card highlight-purple" id="cardSubnetMask">
+        <div class="card-top">
+          <span class="card-label">Subnet Mask</span>
+          <button class="copy-btn" onclick="window.copyToClipboard(document.querySelector('#cardSubnetMask .card-value').textContent, 'Subnet Mask')" title="Copy Subnet Mask">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </button>
+        </div>
+        <div class="card-value">255.255.255.0</div>
+        <div class="card-subtext">Hex: 0xFFFFFF00</div>
+      </div>
+
+      <!-- Usable Host Range -->
+      <div class="result-card highlight-emerald" id="cardUsableRange">
+        <div class="card-top">
+          <span class="card-label">Usable Host Range</span>
+          <button class="copy-btn" onclick="window.copyToClipboard(document.querySelector('#cardUsableRange .card-value').textContent, 'Usable Host Range')" title="Copy Usable Range">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </button>
+        </div>
+        <div class="card-value">192.168.1.1 – 192.168.1.254</div>
+        <div class="card-subtext">254 assignable addresses</div>
+      </div>
+
+      <!-- Broadcast Address -->
+      <div class="result-card highlight-amber" id="cardBroadcastAddress">
+        <div class="card-top">
+          <span class="card-label">Broadcast Address</span>
+          <button class="copy-btn" onclick="window.copyToClipboard(document.querySelector('#cardBroadcastAddress .card-value').textContent, 'Broadcast Address')" title="Copy Broadcast Address">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </button>
+        </div>
+        <div class="card-value">192.168.1.255</div>
+        <div class="card-subtext">Direct broadcast IP</div>
+      </div>
+
+      <!-- Wildcard Mask -->
+      <div class="result-card" id="cardWildcardMask">
+        <div class="card-top">
+          <span class="card-label">Wildcard Mask (Inverse)</span>
+          <button class="copy-btn" onclick="window.copyToClipboard(document.querySelector('#cardWildcardMask .card-value').textContent, 'Wildcard Mask')" title="Copy Wildcard Mask">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </button>
+        </div>
+        <div class="card-value">0.0.0.255</div>
+        <div class="card-subtext">Cisco ACL &amp; OSPF format</div>
+      </div>
+
+      <!-- Total & Usable Hosts -->
+      <div class="result-card" id="cardTotalAddresses">
+        <div class="card-top">
+          <span class="card-label">Total Addresses</span>
+          <button class="copy-btn" onclick="window.copyToClipboard(document.querySelector('#cardTotalAddresses .card-value').textContent, 'Total Addresses')" title="Copy Total Addresses">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          </button>
+        </div>
+        <div class="card-value">256</div>
+        <div class="card-subtext">2^8 total addresses in block</div>
+      </div>
+
+    </section>
+
+    <!-- Navigation Tabs for Visualizations & Tools -->
+    <nav class="tabs-nav">
+      <button class="tab-btn active" data-tab="visualizer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+        <span>32-Bit Matrix &amp; Logic</span>
+      </button>
+      <button class="tab-btn" data-tab="topology">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+        <span>Visual PC Topology</span>
+      </button>
+      <button class="tab-btn" data-tab="spectrum">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+        <span>Address Space Spectrum</span>
+      </button>
+      <button class="tab-btn" data-tab="slicer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+        <span>Subnet Slicer / Divider</span>
+      </button>
+      <button class="tab-btn" data-tab="vlsm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+        <span>VLSM Allocator</span>
+      </button>
+      <button class="tab-btn" data-tab="config">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+        <span>Configs &amp; Export</span>
+      </button>
+      <button class="tab-btn" data-tab="cheatsheet">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <span>CIDR Reference Sheet</span>
+      </button>
+    </nav>
+
+    <!-- Tab 1: 32-Bit Interactive Matrix & Bitwise Logic -->
+    <div id="panel-visualizer" class="tab-content-panel active">
+      
+      <!-- 32-Bit Interactive Matrix -->
+      <section class="visualizer-section glass-panel">
+        <div class="section-header">
+          <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+            <span>32-Bit Interactive Binary Matrix</span>
+          </div>
+          <div class="section-legend">
+            <span class="legend-chip"><span class="legend-dot dot-network"></span> Network Bits</span>
+            <span class="legend-chip"><span class="legend-dot dot-subnet"></span> Subnet Bits (Borrowed)</span>
+            <span class="legend-chip"><span class="legend-dot dot-host"></span> Host Bits</span>
+          </div>
+        </div>
+
+        <div id="bitMatrixContainer" class="bit-matrix-grid"></div>
+
+        <div style="font-size: 0.8rem; color: var(--text-dim); text-align: center; margin-top: 6px;">
+          💡 Tip: Click any bit card above to instantly set the CIDR prefix cutoff to that position!
+        </div>
+      </section>
+
+      <!-- Bitwise AND Logic Explainer -->
+      <section class="visualizer-section glass-panel">
+        <div class="section-header">
+          <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+            <span>Bitwise AND Calculation Engine (How Computers Filter Subnets)</span>
+          </div>
+        </div>
+
+        <div id="bitwiseAndContainer"></div>
+      </section>
+
+    </div>
+
+    <!-- Tab 2: Visual PC Network Topology & Packet Flow Simulation -->
+    <div id="panel-topology" class="tab-content-panel">
+      <section class="visualizer-section glass-panel">
+        <div id="topologyContainer"></div>
+      </section>
+    </div>
+
+    <!-- Tab 3: Address Space Spectrum & Range -->
+    <div id="panel-spectrum" class="tab-content-panel">
+      <section class="visualizer-section glass-panel">
+        <div class="section-header">
+          <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+            <span>Subnet Address Space Spectrum &amp; Boundary Allocation</span>
+          </div>
+        </div>
+
+        <div id="spectrumContainer"></div>
+      </section>
+    </div>
+
+    <!-- Tab 4: Subnet Slicer / Divider -->
+    <div id="panel-slicer" class="tab-content-panel">
+      <section class="visualizer-section glass-panel">
+        <div class="section-header">
+          <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            <span>Subnet Slicer (Subdivide Parent Network)</span>
+          </div>
+        </div>
+
+        <div id="slicerContainer"></div>
+      </section>
+    </div>
+
+    <!-- Tab 5: VLSM Allocator -->
+    <div id="panel-vlsm" class="tab-content-panel">
+      <section class="visualizer-section glass-panel">
+        <div class="section-header">
+          <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Variable Length Subnet Masking (VLSM) Custom Planner</span>
+          </div>
+          <button class="action-btn" onclick="window.addVlsmRow()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>Add Subnet Requirement</span>
+          </button>
+        </div>
+
+        <div class="vlsm-inputs-form">
+          <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 10px;">
+            Specify the number of usable host addresses required for each department or link:
+          </div>
+          <div id="vlsmInputsContainer"></div>
+        </div>
+
+        <div id="vlsmContainer"></div>
+      </section>
+    </div>
+
+    <!-- Tab 6: Configuration & Export -->
+    <div id="panel-config" class="tab-content-panel">
+      <section class="visualizer-section glass-panel">
+        <div class="section-header">
+          <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            <span>Ready-to-Deploy Router &amp; Server Network Configurations</span>
+          </div>
+        </div>
+
+        <div class="config-block">
+          <div class="config-header">
+            <span>Cisco IOS (Interface, ACL Wildcard &amp; Route)</span>
+            <button class="action-btn" onclick="window.copyToClipboard(document.getElementById('ciscoConfigCode').textContent, 'Cisco Config')">Copy Cisco IOS</button>
+          </div>
+          <pre id="ciscoConfigCode" class="config-code"></pre>
+        </div>
+
+        <div class="config-block">
+          <div class="config-header">
+            <span>Linux Netplan Configuration (/etc/netplan/01-netcfg.yaml)</span>
+            <button class="action-btn" onclick="window.copyToClipboard(document.getElementById('linuxConfigCode').textContent, 'Linux Netplan Config')">Copy Netplan YAML</button>
+          </div>
+          <pre id="linuxConfigCode" class="config-code"></pre>
+        </div>
+
+        <div class="config-block">
+          <div class="config-header">
+            <span>JSON Object (For Automation &amp; APIs)</span>
+            <button class="action-btn" onclick="window.copyToClipboard(document.getElementById('jsonConfigCode').textContent, 'JSON Export')">Copy JSON</button>
+          </div>
+          <pre id="jsonConfigCode" class="config-code"></pre>
+        </div>
+      </section>
+    </div>
+
+    <!-- Tab 7: Complete Cheat Sheet -->
+    <div id="panel-cheatsheet" class="tab-content-panel">
+      <section class="visualizer-section glass-panel">
+        <div class="section-header">
+          <div class="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            <span>Complete IPv4 CIDR Subnet Cheat Sheet (/0 to /32)</span>
+          </div>
+          <span style="font-size: 0.8rem; color: var(--text-dim);">Click any row to test and load into calculator</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="vlsm-table">
+            <thead>
+              <tr>
+                <th>CIDR Prefix</th>
+                <th>Subnet Mask</th>
+                <th>Wildcard Mask</th>
+                <th>Total Addresses</th>
+                <th>Usable Hosts</th>
+                <th>Standard Category</th>
+              </tr>
+            </thead>
+            <tbody id="cheatSheetTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script>
+/**
+ * SubnetForge - High Performance IPv4 Networking & Subnet Calculation Engine
+ * Handles bitwise operations, address classes, VLSM, slicing, and binary formatting.
+ */
+
+const SubnetCalculator = (() => {
+  // Convert dotted decimal IP string to 32-bit unsigned integer
+  function ipToUint(ip) {
+    if (!ip) return null;
+    const parts = ip.trim().split('.');
+    if (parts.length !== 4) return null;
+    let uint = 0;
+    for (let i = 0; i < 4; i++) {
+      const byte = Number(parts[i]);
+      if (isNaN(byte) || byte < 0 || byte > 255 || parts[i].trim() === '') return null;
+      uint = ((uint << 8) | byte) >>> 0;
+    }
+    return uint;
+  }
+
+  // Convert 32-bit unsigned integer to dotted decimal string
+  function uintToIp(uint) {
+    return [
+      (uint >>> 24) & 255,
+      (uint >>> 16) & 255,
+      (uint >>> 8) & 255,
+      uint & 255
+    ].join('.');
+  }
+
+  // Convert CIDR prefix (0-32) to 32-bit subnet mask uint
+  function cidrToMaskUint(cidr) {
+    if (cidr === 0) return 0;
+    return (0xFFFFFFFF << (32 - cidr)) >>> 0;
+  }
+
+  // Convert subnet mask uint to CIDR prefix length (0-32)
+  function maskUintToCidr(maskUint) {
+    let count = 0;
+    let temp = maskUint;
+    while (temp & 0x80000000) {
+      count++;
+      temp = (temp << 1) >>> 0;
+    }
+    return count;
+  }
+
+  // Format uint to 32-bit binary string with dots between octets
+  function uintToBinaryString(uint) {
+    const binary = (uint >>> 0).toString(2).padStart(32, '0');
+    return [
+      binary.slice(0, 8),
+      binary.slice(8, 16),
+      binary.slice(16, 24),
+      binary.slice(24, 32)
+    ].join('.');
+  }
+
+  // Return array of 4 octet binary strings ['11000000', '10101000', ...]
+  function uintToOctetBinaries(uint) {
+    const binary = (uint >>> 0).toString(2).padStart(32, '0');
+    return [
+      binary.slice(0, 8),
+      binary.slice(8, 16),
+      binary.slice(16, 24),
+      binary.slice(24, 32)
+    ];
+  }
+
+  // Determine Classful Network default prefix
+  function getClassInfo(ipUint) {
+    const firstOctet = (ipUint >>> 24) & 255;
+    if (firstOctet >= 1 && firstOctet <= 126) {
+      return { class: 'A', defaultPrefix: 8, maxSubnets: '126', defaultMask: '255.0.0.0' };
+    } else if (firstOctet === 127) {
+      return { class: 'Loopback', defaultPrefix: 8, maxSubnets: '1', defaultMask: '255.0.0.0' };
+    } else if (firstOctet >= 128 && firstOctet <= 191) {
+      return { class: 'B', defaultPrefix: 16, maxSubnets: '16,384', defaultMask: '255.255.0.0' };
+    } else if (firstOctet >= 192 && firstOctet <= 223) {
+      return { class: 'C', defaultPrefix: 24, maxSubnets: '2,097,152', defaultMask: '255.255.255.0' };
+    } else if (firstOctet >= 224 && firstOctet <= 239) {
+      return { class: 'D (Multicast)', defaultPrefix: 32, maxSubnets: 'N/A', defaultMask: 'N/A' };
+    } else {
+      return { class: 'E (Experimental)', defaultPrefix: 32, maxSubnets: 'N/A', defaultMask: 'N/A' };
+    }
+  }
+
+  // Detect IP scope and special usage types
+  function getScopeInfo(ipUint) {
+    const o1 = (ipUint >>> 24) & 255;
+    const o2 = (ipUint >>> 16) & 255;
+
+    // RFC 1918 Private
+    if (o1 === 10) return { scope: 'Private (RFC 1918)', badge: 'Private', color: 'emerald' };
+    if (o1 === 172 && (o2 >= 16 && o2 <= 31)) return { scope: 'Private (RFC 1918)', badge: 'Private', color: 'emerald' };
+    if (o1 === 192 && o2 === 168) return { scope: 'Private (RFC 1918)', badge: 'Private', color: 'emerald' };
+
+    // Loopback
+    if (o1 === 127) return { scope: 'Loopback Address (RFC 1122)', badge: 'Loopback', color: 'cyan' };
+
+    // APIPA / Link-Local
+    if (o1 === 169 && o2 === 254) return { scope: 'Link-Local / APIPA (RFC 3927)', badge: 'Link-Local', color: 'amber' };
+
+    // Carrier Grade NAT
+    if (o1 === 100 && (o2 >= 64 && o2 <= 127)) return { scope: 'Carrier-Grade NAT (RFC 6598)', badge: 'CGNAT', color: 'purple' };
+
+    // Multicast
+    if (o1 >= 224 && o1 <= 239) return { scope: 'Multicast (RFC 5771)', badge: 'Multicast', color: 'pink' };
+
+    // Broadcast or 0.0.0.0
+    if (ipUint === 0) return { scope: 'Current Network (RFC 1122)', badge: 'This Host', color: 'slate' };
+    if (ipUint === 0xFFFFFFFF) return { scope: 'Limited Broadcast (RFC 919)', badge: 'Broadcast', color: 'rose' };
+
+    return { scope: 'Public Internet (Globally Routable)', badge: 'Public', color: 'blue' };
+  }
+
+  // Main calculation method
+  function calculate(ipStr, cidr) {
+    cidr = Number(cidr);
+    if (isNaN(cidr) || cidr < 0 || cidr > 32) cidr = 24;
+
+    const ipUint = ipToUint(ipStr);
+    if (ipUint === null) {
+      return { error: 'Invalid IPv4 address format. Please provide 4 numbers (0-255) separated by dots.' };
+    }
+
+    const maskUint = cidrToMaskUint(cidr);
+    const wildcardUint = (~maskUint) >>> 0;
+    const networkUint = (ipUint & maskUint) >>> 0;
+    const broadcastUint = (networkUint | wildcardUint) >>> 0;
+
+    const totalAddresses = Math.pow(2, 32 - cidr);
+    let usableHosts = 0;
+    let firstHostUint = 0;
+    let lastHostUint = 0;
+
+    if (cidr === 32) {
+      usableHosts = 1;
+      firstHostUint = ipUint;
+      lastHostUint = ipUint;
+    } else if (cidr === 31) {
+      // RFC 3021 Point-to-Point
+      usableHosts = 2;
+      firstHostUint = networkUint;
+      lastHostUint = broadcastUint;
+    } else if (cidr <= 30) {
+      usableHosts = Math.max(0, totalAddresses - 2);
+      firstHostUint = (networkUint + 1) >>> 0;
+      lastHostUint = (broadcastUint - 1) >>> 0;
+    }
+
+    const classInfo = getClassInfo(ipUint);
+    const scopeInfo = getScopeInfo(ipUint);
+
+    // Calculate borrowed bits (subnet bits)
+    let defaultPrefix = classInfo.defaultPrefix;
+    if (defaultPrefix > 24) defaultPrefix = 24;
+    let borrowedBits = 0;
+    let subnetsCount = 1;
+    if (cidr > defaultPrefix) {
+      borrowedBits = cidr - defaultPrefix;
+      subnetsCount = Math.pow(2, borrowedBits);
+    }
+    const hostBits = 32 - cidr;
+
+    // Hex and integer representations
+    const hexIp = '0x' + (ipUint >>> 0).toString(16).toUpperCase().padStart(8, '0');
+    const hexMask = '0x' + (maskUint >>> 0).toString(16).toUpperCase().padStart(8, '0');
+
+    // In-addr.arpa reverse pointer
+    const octets = [
+      (ipUint >>> 24) & 255,
+      (ipUint >>> 16) & 255,
+      (ipUint >>> 8) & 255,
+      ipUint & 255
+    ];
+    const reverseDns = `${octets[3]}.${octets[2]}.${octets[1]}.${octets[0]}.in-addr.arpa`;
+
+    // 32-bit arrays of bit states
+    const ipBits = (ipUint >>> 0).toString(2).padStart(32, '0').split('').map(Number);
+    const maskBits = (maskUint >>> 0).toString(2).padStart(32, '0').split('').map(Number);
+    const networkBits = (networkUint >>> 0).toString(2).padStart(32, '0').split('').map(Number);
+    const wildcardBits = (wildcardUint >>> 0).toString(2).padStart(32, '0').split('').map(Number);
+    const broadcastBits = (broadcastUint >>> 0).toString(2).padStart(32, '0').split('').map(Number);
+
+    return {
+      ip: uintToIp(ipUint),
+      ipUint: ipUint,
+      cidr: cidr,
+      subnetMask: uintToIp(maskUint),
+      maskUint: maskUint,
+      wildcardMask: uintToIp(wildcardUint),
+      wildcardUint: wildcardUint,
+      networkAddress: uintToIp(networkUint),
+      networkUint: networkUint,
+      broadcastAddress: uintToIp(broadcastUint),
+      broadcastUint: broadcastUint,
+      firstUsableHost: usableHosts > 0 ? uintToIp(firstHostUint) : 'N/A',
+      firstHostUint: firstHostUint,
+      lastUsableHost: usableHosts > 0 ? uintToIp(lastHostUint) : 'N/A',
+      lastHostUint: lastHostUint,
+      usableHostRange: usableHosts > 0 ? `${uintToIp(firstHostUint)} – ${uintToIp(lastHostUint)}` : 'None',
+      totalAddresses: totalAddresses,
+      usableHosts: usableHosts,
+      classInfo: classInfo,
+      scopeInfo: scopeInfo,
+      defaultPrefix: defaultPrefix,
+      borrowedBits: borrowedBits,
+      hostBits: hostBits,
+      subnetsCount: subnetsCount,
+      hexIp: hexIp,
+      hexMask: hexMask,
+      reverseDns: reverseDns,
+      binary: {
+        ip: uintToBinaryString(ipUint),
+        mask: uintToBinaryString(maskUint),
+        network: uintToBinaryString(networkUint),
+        wildcard: uintToBinaryString(wildcardUint),
+        broadcast: uintToBinaryString(broadcastUint),
+        octets: {
+          ip: uintToOctetBinaries(ipUint),
+          mask: uintToOctetBinaries(maskUint),
+          network: uintToOctetBinaries(networkUint),
+          wildcard: uintToOctetBinaries(wildcardUint),
+          broadcast: uintToOctetBinaries(broadcastUint)
+        },
+        raw: {
+          ip: ipBits,
+          mask: maskBits,
+          network: networkBits,
+          wildcard: wildcardBits,
+          broadcast: broadcastBits
+        }
+      }
+    };
+  }
+
+  // Slicer: Subdivide a parent network into target smaller subnets (larger CIDR)
+  function sliceNetwork(parentNetworkStr, parentCidr, targetCidr, maxLimit = 256) {
+    const parentUint = ipToUint(parentNetworkStr);
+    if (parentUint === null) return { totalSubnets: 0, subnets: [] };
+    if (targetCidr < parentCidr || targetCidr > 32) return { totalSubnets: 0, subnets: [] };
+
+    const parentMaskUint = cidrToMaskUint(parentCidr);
+    const baseNetworkUint = (parentUint & parentMaskUint) >>> 0;
+
+    const blockSize = Math.pow(2, 32 - targetCidr);
+    const totalSubnets = Math.pow(2, targetCidr - parentCidr);
+    const limit = Math.min(totalSubnets, maxLimit);
+
+    const subnets = [];
+    for (let i = 0; i < limit; i++) {
+      const subNetworkUint = (baseNetworkUint + (i * blockSize)) >>> 0;
+      const subCalc = calculate(uintToIp(subNetworkUint), targetCidr);
+      subnets.push({
+        index: i + 1,
+        network: subCalc.networkAddress,
+        cidr: targetCidr,
+        mask: subCalc.subnetMask,
+        usableRange: subCalc.usableHostRange,
+        broadcast: subCalc.broadcastAddress,
+        usableHosts: subCalc.usableHosts,
+        totalAddresses: subCalc.totalAddresses
+      });
+    }
+
+    return {
+      totalSubnets: totalSubnets,
+      renderedCount: limit,
+      subnets: subnets
+    };
+  }
+
+  // VLSM Allocation Engine:
+  function calculateVLSM(baseIpStr, baseCidr, requirements) {
+    const baseUint = ipToUint(baseIpStr);
+    if (baseUint === null) return { error: 'Invalid Base IP' };
+
+    const baseMask = cidrToMaskUint(baseCidr);
+    const networkBaseUint = (baseUint & baseMask) >>> 0;
+    const totalParentCapacity = Math.pow(2, 32 - baseCidr);
+
+    // Filter and sort requirements descending by hosts needed
+    const sorted = requirements
+      .map((req, idx) => ({
+        id: idx + 1,
+        name: req.name || `Subnet ${idx + 1}`,
+        hosts: Math.max(1, parseInt(req.hosts) || 1)
+      }))
+      .sort((a, b) => b.hosts - a.hosts);
+
+    let currentPointer = networkBaseUint;
+    const allocations = [];
+    let allocatedAddressesTotal = 0;
+
+    for (const req of sorted) {
+      let prefix = 30;
+      while (prefix > 0) {
+        const capacity = Math.pow(2, 32 - prefix) - 2;
+        if (capacity >= req.hosts) {
+          break;
+        }
+        prefix--;
+      }
+
+      if (prefix < baseCidr) {
+        allocations.push({
+          ...req,
+          error: `Requires ${req.hosts} hosts (prefix /${prefix}), which exceeds parent block /${baseCidr}!`
+        });
+        continue;
+      }
+
+      const blockSize = Math.pow(2, 32 - prefix);
+      if ((currentPointer - networkBaseUint) + blockSize > totalParentCapacity) {
+        allocations.push({
+          ...req,
+          error: 'Not enough address space left in parent block!'
+        });
+        continue;
+      }
+
+      const calc = calculate(uintToIp(currentPointer), prefix);
+      allocations.push({
+        name: req.name,
+        neededHosts: req.hosts,
+        prefix: prefix,
+        mask: calc.subnetMask,
+        network: calc.networkAddress,
+        firstHost: calc.firstUsableHost,
+        lastHost: calc.lastUsableHost,
+        broadcast: calc.broadcastAddress,
+        allocatedHosts: calc.usableHosts,
+        totalSize: blockSize,
+        wastedHosts: calc.usableHosts - req.hosts,
+        offsetUint: currentPointer - networkBaseUint
+      });
+
+      currentPointer = (currentPointer + blockSize) >>> 0;
+      allocatedAddressesTotal += blockSize;
+    }
+
+    const freeAddresses = totalParentCapacity - allocatedAddressesTotal;
+
+    return {
+      parentNetwork: uintToIp(networkBaseUint),
+      parentCidr: baseCidr,
+      totalCapacity: totalParentCapacity,
+      allocatedTotal: allocatedAddressesTotal,
+      freeTotal: freeAddresses,
+      utilizationPercent: ((allocatedAddressesTotal / totalParentCapacity) * 100).toFixed(1),
+      allocations: allocations
+    };
+  }
+
+  // Generate configurations
+  function generateConfigurations(calc) {
+    const ciscoIOS = `! Cisco IOS Interface & Route Configuration
+interface GigabitEthernet0/0/1
+ description Subnet Interface for ${calc.networkAddress}/${calc.cidr}
+ ip address ${calc.firstUsableHost} ${calc.subnetMask}
+ no shutdown
+exit
+!
+! Cisco ACL Wildcard Definition
+access-list 10 permit ${calc.networkAddress} ${calc.wildcardMask}
+!
+! Static Route Example
+ip route ${calc.networkAddress} ${calc.subnetMask} GigabitEthernet0/0/1`;
+
+    const linuxNetplan = `# Linux Netplan (/etc/netplan/01-netcfg.yaml)
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      addresses:
+        - ${calc.ip}/${calc.cidr}
+      routes:
+        - to: default
+          via: ${calc.firstUsableHost}`;
+
+    const jsonExport = JSON.stringify({
+      ip_address: calc.ip,
+      cidr: `/${calc.cidr}`,
+      subnet_mask: calc.subnetMask,
+      wildcard_mask: calc.wildcardMask,
+      network_address: calc.networkAddress,
+      broadcast_address: calc.broadcastAddress,
+      usable_range: {
+        first: calc.firstUsableHost,
+        last: calc.lastUsableHost,
+        total_usable: calc.usableHosts
+      },
+      class: calc.classInfo.class,
+      scope: calc.scopeInfo.scope,
+      bits: {
+        network_bits: calc.cidr,
+        borrowed_bits: calc.borrowedBits,
+        host_bits: calc.hostBits
+      }
+    }, null, 2);
+
+    return { ciscoIOS, linuxNetplan, jsonExport };
+  }
+
+  return {
+    ipToUint,
+    uintToIp,
+    cidrToMaskUint,
+    maskUintToCidr,
+    uintToBinaryString,
+    calculate,
+    sliceNetwork,
+    calculateVLSM,
+    generateConfigurations
+  };
+})();
+
+// Export for module systems or window global
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = SubnetCalculator;
+} else if (typeof window !== 'undefined') {
+  window.SubnetCalculator = SubnetCalculator;
+}
+
+
+
+/**
+ * SubnetForge - Visualizer Engine
+ * Renders the 32-Bit Interactive Matrix, Bitwise AND Flow, Proportional Bar,
+ * Subnet Slicer Matrix, VLSM Visualizer, and Visual PC Network Topology.
+ */
+
+const SubnetVisualizer = (() => {
+
+  // Render the 32-Bit interactive matrix
+  function renderBitMatrix(containerId, calc) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const powers = [128, 64, 32, 16, 8, 4, 2, 1];
+    let html = '';
+
+    const defaultPrefix = calc.defaultPrefix;
+    const cidr = calc.cidr;
+
+    for (let octetIdx = 0; octetIdx < 4; octetIdx++) {
+      const octetStartBit = octetIdx * 8;
+      const octetIpVal = (calc.ipUint >>> (24 - (octetIdx * 8))) & 255;
+      const octetMaskVal = (calc.maskUint >>> (24 - (octetIdx * 8))) & 255;
+
+      html += `
+        <div class="octet-group glass-panel" data-octet="${octetIdx + 1}">
+          <div class="octet-header">
+            <span class="octet-title">Octet ${octetIdx + 1}</span>
+            <div class="octet-values">
+              <span class="tag tag-cyan" title="IP Octet Decimal">${octetIpVal}</span>
+              <span class="tag tag-dim" title="Mask Octet Decimal">/ ${octetMaskVal}</span>
+            </div>
+          </div>
+          <div class="bits-row">
+      `;
+
+      for (let bitIdx = 0; bitIdx < 8; bitIdx++) {
+        const globalBit = octetStartBit + bitIdx;
+        const bitPos = globalBit + 1;
+        const bitValue = calc.binary.raw.ip[globalBit];
+        const weight = powers[bitIdx];
+
+        let roleClass = 'bit-host';
+        let roleLabel = 'Host Bit';
+        let roleBadge = 'Host';
+
+        if (globalBit < defaultPrefix) {
+          roleClass = 'bit-network';
+          roleLabel = 'Network Bit (Class default)';
+          roleBadge = 'Network';
+        } else if (globalBit < cidr) {
+          roleClass = 'bit-subnet';
+          roleLabel = 'Subnet Bit (Borrowed)';
+          roleBadge = 'Subnet';
+        }
+
+        const isCidrBoundary = (bitPos === cidr);
+
+        html += `
+          <div class="bit-card ${roleClass} ${isCidrBoundary ? 'boundary-bit' : ''}" 
+               data-bit-pos="${bitPos}" 
+               title="Bit #${bitPos} (${roleLabel})&#10;Value: ${bitValue} | Weight: 2^${7 - bitIdx} (${weight})"
+               onclick="window.onBitMatrixClick(${bitPos})">
+            <span class="bit-pos">${bitPos}</span>
+            <span class="bit-val ${bitValue === 1 ? 'val-one' : 'val-zero'}">${bitValue}</span>
+            <span class="bit-weight">${weight}</span>
+            <div class="bit-hover-info">
+              <span class="role-badge ${roleClass}">${roleBadge}</span>
+              <span>Pos ${bitPos} &bull; ${weight}</span>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `
+          </div>
+          <div class="octet-footer">
+            <span class="octet-bits-summary">${calc.binary.octets.ip[octetIdx]}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+  }
+
+  // Render the Bitwise AND step-by-step logic
+  function renderBitwiseAnd(containerId, calc) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const renderRow = (label, octets, type, badge) => {
+      const octetPills = octets.map((octStr, idx) => {
+        const bits = octStr.split('').map((b, bIdx) => {
+          const globalPos = idx * 8 + bIdx;
+          const isNetwork = globalPos < calc.cidr;
+          return `<span class="bitwise-bit ${isNetwork ? 'net-colored' : 'host-colored'}">${b}</span>`;
+        }).join('');
+
+        return `
+          <div class="bitwise-octet">
+            <div class="bitwise-octet-bits">${bits}</div>
+            <span class="bitwise-octet-dec">${(calc[type + 'Uint'] >>> (24 - idx * 8)) & 255}</span>
+          </div>
+        `;
+      }).join('<span class="bitwise-dot">&bull;</span>');
+
+      return `
+        <div class="bitwise-row ${type}-row">
+          <div class="bitwise-label">
+            <span class="badge ${badge}">${label}</span>
+          </div>
+          <div class="bitwise-octets-container">
+            ${octetPills}
+          </div>
+        </div>
+      `;
+    };
+
+    let html = `
+      <div class="bitwise-equation">
+        ${renderRow('IP Address', calc.binary.octets.ip, 'ip', 'badge-cyan')}
+        <div class="bitwise-operator">
+          <span class="operator-symbol">AND (&amp;)</span>
+          <span class="operator-desc">Bitwise Subnet Mask Filter</span>
+        </div>
+        ${renderRow('Subnet Mask', calc.binary.octets.mask, 'mask', 'badge-purple')}
+        <div class="bitwise-divider"></div>
+        ${renderRow('Network Address', calc.binary.octets.network, 'network', 'badge-emerald')}
+      </div>
+      <div class="bitwise-footer-legend">
+        <span class="legend-item"><span class="legend-swatch cyan"></span> Network Portion (Preserved by Mask 1s)</span>
+        <span class="legend-item"><span class="legend-swatch dim"></span> Host Portion (Zeroed out by Mask 0s)</span>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  // Render proportional address space distribution
+  function renderAddressSpectrum(containerId, calc) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const total = calc.totalAddresses;
+    const usable = calc.usableHosts;
+    const isSpecial = calc.cidr >= 31;
+
+    let netPercent = ((1 / total) * 100);
+    let bcastPercent = ((1 / total) * 100);
+
+    if (isSpecial) {
+      netPercent = 50;
+      bcastPercent = 0;
+    }
+
+    const visualNetWidth = Math.max(3, Math.min(netPercent, 12));
+    const visualBcastWidth = Math.max(3, Math.min(bcastPercent, 12));
+    const visualHostWidth = 100 - visualNetWidth - (isSpecial ? 0 : visualBcastWidth);
+
+    const html = `
+      <div class="spectrum-card">
+        <div class="spectrum-bar-wrapper">
+          <div class="spectrum-bar">
+            <div class="spectrum-slice slice-net" style="width: ${visualNetWidth}%" title="Network ID: ${calc.networkAddress}">
+              <span class="slice-label">Net ID</span>
+            </div>
+            <div class="spectrum-slice slice-hosts" style="width: ${visualHostWidth}%" title="Usable Hosts: ${calc.usableHostRange} (${usable.toLocaleString()} hosts)">
+              <span class="slice-label">Usable Host Space (${usable.toLocaleString()} IPs)</span>
+            </div>
+            ${!isSpecial ? `
+              <div class="spectrum-slice slice-bcast" style="width: ${visualBcastWidth}%" title="Broadcast ID: ${calc.broadcastAddress}">
+                <span class="slice-label">Bcast</span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <div class="spectrum-details-grid">
+          <div class="spec-detail-box net-box">
+            <span class="spec-label">Network ID (Wire Address)</span>
+            <span class="spec-value mono">${calc.networkAddress}</span>
+            <span class="spec-sub">First Address (Reserved)</span>
+          </div>
+          <div class="spec-detail-box host-box">
+            <span class="spec-label">Usable Host Range</span>
+            <span class="spec-value mono">${calc.usableHostRange}</span>
+            <span class="spec-sub">${usable.toLocaleString()} assignable client/server addresses</span>
+          </div>
+          <div class="spec-detail-box bcast-box">
+            <span class="spec-label">Directed Broadcast</span>
+            <span class="spec-value mono">${calc.broadcastAddress}</span>
+            <span class="spec-sub">Last Address (Broadcast to all hosts)</span>
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  // Render Interactive Slicer (Subnet partitioning)
+  function renderSubnetSlicer(containerId, parentCalc, targetCidr) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (targetCidr < parentCalc.cidr) {
+      targetCidr = Math.min(30, parentCalc.cidr + 2);
+    }
+
+    const sliceResult = SubnetCalculator.sliceNetwork(parentCalc.networkAddress, parentCalc.cidr, targetCidr, 64);
+    const subnets = sliceResult.subnets;
+    const totalCount = sliceResult.totalSubnets;
+
+    let subnetsHtml = '';
+    subnets.forEach((sub, idx) => {
+      subnetsHtml += `
+        <div class="slice-block-card" onclick="window.applySlicedSubnet('${sub.network}', ${sub.cidr})">
+          <div class="slice-card-header">
+            <span class="slice-badge">#${idx + 1}</span>
+            <span class="slice-net mono">${sub.network}/${sub.cidr}</span>
+          </div>
+          <div class="slice-card-body">
+            <div class="slice-row">
+              <span class="k">Usable:</span>
+              <span class="v mono">${sub.usableRange}</span>
+            </div>
+            <div class="slice-row">
+              <span class="k">Broadcast:</span>
+              <span class="v mono">${sub.broadcast}</span>
+            </div>
+            <div class="slice-row">
+              <span class="k">Hosts:</span>
+              <span class="v badge-cyan">${sub.usableHosts.toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    const html = `
+      <div class="slicer-control-bar">
+        <div class="slicer-meta">
+          <span>Parent: <strong class="mono text-cyan">${parentCalc.networkAddress}/${parentCalc.cidr}</strong></span>
+          <span>Divided into: <strong class="text-purple">${totalCount.toLocaleString()}</strong> subnets of <strong class="text-emerald">/${targetCidr}</strong></span>
+        </div>
+        <div class="slicer-selector">
+          <label for="sliceCidrSelect">Target CIDR Prefix:</label>
+          <select id="sliceCidrSelect" onchange="window.onSliceCidrChange(this.value)">
+            ${Array.from({ length: 31 - parentCalc.cidr }, (_, i) => parentCalc.cidr + 1 + i).map(c => `
+              <option value="${c}" ${c === targetCidr ? 'selected' : ''}>
+                /${c} &mdash; ${Math.pow(2, c - parentCalc.cidr)} subnets (${Math.max(0, Math.pow(2, 32 - c) - 2)} hosts each)
+              </option>
+            `).join('')}
+          </select>
+        </div>
+      </div>
+
+      <div class="slicer-grid">
+        ${subnetsHtml}
+      </div>
+      ${totalCount > 64 ? `<div class="slicer-overflow-note">Showing first 64 of ${totalCount.toLocaleString()} subnets to maintain maximum UI fluidity.</div>` : ''}
+    `;
+
+    container.innerHTML = html;
+  }
+
+  // Render VLSM Allocation
+  function renderVLSM(containerId, vlsmResult) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (vlsmResult.error) {
+      container.innerHTML = `<div class="error-banner">${vlsmResult.error}</div>`;
+      return;
+    }
+
+    let barSlicesHtml = '';
+    let tableRowsHtml = '';
+
+    vlsmResult.allocations.forEach((alloc, idx) => {
+      if (alloc.error) {
+        tableRowsHtml += `
+          <tr class="vlsm-error-row">
+            <td>${alloc.name}</td>
+            <td>${alloc.hosts}</td>
+            <td colspan="6" class="text-rose">${alloc.error}</td>
+          </tr>
+        `;
+        return;
+      }
+
+      const percent = ((alloc.totalSize / vlsmResult.totalCapacity) * 100).toFixed(1);
+      const colorHue = (idx * 55) % 360;
+
+      barSlicesHtml += `
+        <div class="vlsm-bar-slice" 
+             style="width: ${percent}%; background: hsl(${colorHue}, 75%, 45%);"
+             title="${alloc.name}: ${alloc.network}/${alloc.prefix} (${alloc.totalSize} IPs, ${percent}%)">
+          <span class="vlsm-slice-title">${alloc.name} (/${alloc.prefix})</span>
+        </div>
+      `;
+
+      tableRowsHtml += `
+        <tr>
+          <td><strong class="text-light">${alloc.name}</strong></td>
+          <td><span class="badge badge-dim">${alloc.neededHosts}</span></td>
+          <td><span class="mono text-cyan">/${alloc.prefix}</span></td>
+          <td><span class="mono">${alloc.mask}</span></td>
+          <td><span class="mono text-emerald">${alloc.network}</span></td>
+          <td><span class="mono">${alloc.firstHost} &ndash; ${alloc.lastHost}</span></td>
+          <td><span class="mono">${alloc.broadcast}</span></td>
+          <td><span class="badge badge-purple">${alloc.allocatedHosts} hosts (${alloc.wastedHosts} spare)</span></td>
+        </tr>
+      `;
+    });
+
+    const freePercent = ((vlsmResult.freeTotal / vlsmResult.totalCapacity) * 100).toFixed(1);
+    if (vlsmResult.freeTotal > 0) {
+      barSlicesHtml += `
+        <div class="vlsm-bar-slice vlsm-slice-free" 
+             style="width: ${freePercent}%;"
+             title="Free Space: ${vlsmResult.freeTotal.toLocaleString()} IPs (${freePercent}%)">
+          <span>Free (${freePercent}%)</span>
+        </div>
+      `;
+    }
+
+    const html = `
+      <div class="vlsm-summary-bar">
+        <div class="vlsm-metric">
+          <span class="vlsm-m-label">Parent Block</span>
+          <span class="vlsm-m-val mono">${vlsmResult.parentNetwork}/${vlsmResult.parentCidr}</span>
+        </div>
+        <div class="vlsm-metric">
+          <span class="vlsm-m-label">Space Allocated</span>
+          <span class="vlsm-m-val text-cyan">${vlsmResult.allocatedTotal.toLocaleString()} / ${vlsmResult.totalCapacity.toLocaleString()} IPs (${vlsmResult.utilizationPercent}%)</span>
+        </div>
+        <div class="vlsm-metric">
+          <span class="vlsm-m-label">Available Free</span>
+          <span class="vlsm-m-val text-emerald">${vlsmResult.freeTotal.toLocaleString()} IPs</span>
+        </div>
+      </div>
+
+      <div class="vlsm-visual-strip-wrapper">
+        <div class="vlsm-visual-strip">
+          ${barSlicesHtml}
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="vlsm-table">
+          <thead>
+            <tr>
+              <th>Subnet Name</th>
+              <th>Needed</th>
+              <th>Allocated CIDR</th>
+              <th>Subnet Mask</th>
+              <th>Network Address</th>
+              <th>Usable Host Range</th>
+              <th>Broadcast Address</th>
+              <th>Capacity</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRowsHtml}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  // State for active topology device selection and simulation
+  let activeTopologyCalc = null;
+  let activeSimulationTimer = null;
+
+  // Generate topology devices based on current subnet calculation
+  function getTopologyDevices(calc) {
+    const netUint = calc.networkUint;
+    const bcastUint = calc.broadcastUint;
+    const usable = calc.usableHosts;
+
+    let gatewayIp, pc1Ip, pc2Ip, laptopIp, serverIp, externalIp;
+
+    if (calc.cidr === 32) {
+      gatewayIp = calc.ip;
+      pc1Ip = calc.ip;
+      pc2Ip = 'None (/32 Host)';
+      laptopIp = 'None';
+      serverIp = 'None';
+      externalIp = '8.8.8.8';
+    } else if (calc.cidr === 31) {
+      gatewayIp = SubnetCalculator.uintToIp(netUint);
+      pc1Ip = SubnetCalculator.uintToIp(bcastUint);
+      pc2Ip = 'P2P Point 2';
+      laptopIp = 'None';
+      serverIp = 'None';
+      externalIp = '8.8.8.8';
+    } else {
+      gatewayIp = calc.firstUsableHost;
+      pc1Ip = SubnetCalculator.uintToIp(Math.min(bcastUint - 1, netUint + Math.min(usable, 2)));
+      pc2Ip = SubnetCalculator.uintToIp(Math.min(bcastUint - 1, netUint + Math.min(usable, 3)));
+      laptopIp = SubnetCalculator.uintToIp(Math.min(bcastUint - 1, netUint + Math.min(usable, 4)));
+      serverIp = calc.lastUsableHost;
+
+      const extUint = (bcastUint + 256) >>> 0;
+      externalIp = SubnetCalculator.uintToIp(extUint === 0 ? 0x08080808 : extUint);
+    }
+
+    return {
+      router: {
+        id: 'node-router',
+        name: 'Default Gateway (Router R1)',
+        type: 'router',
+        icon: '🛡️',
+        ip: gatewayIp,
+        mask: calc.subnetMask,
+        cidr: calc.cidr,
+        gateway: 'External ISP Gateway',
+        mac: '52:54:00:12:34:01',
+        status: 'Subnet Gateway Exit',
+        desc: 'The Layer 3 default gateway interface. Any packet destined for an IP outside the local subnet must pass through this router.'
+      },
+      switch: {
+        id: 'node-switch',
+        name: 'Subnet Core Switch (SW1)',
+        type: 'switch',
+        icon: '🔀',
+        ip: 'Layer 2 (Transparent Frame Forwarder)',
+        mask: calc.subnetMask,
+        cidr: calc.cidr,
+        gateway: 'N/A',
+        mac: '52:54:00:EE:FF:01',
+        status: 'Local Broadcast Boundary',
+        desc: 'Connects all local subnet hosts. Forwards frames directly via MAC addresses without routing. Forwards broadcasts only to ports within this subnet.'
+      },
+      pc1: {
+        id: 'node-pc1',
+        name: 'Workstation 1 (PC A)',
+        type: 'pc',
+        icon: '🖥️',
+        ip: pc1Ip,
+        mask: calc.subnetMask,
+        cidr: calc.cidr,
+        gateway: gatewayIp,
+        mac: '00:1B:44:11:3A:B7',
+        status: 'Inside Subnet Broadcast Domain',
+        desc: 'Local workstation host. Evaluates destination IPs using its subnet mask to determine if packets can be sent directly or require the Default Gateway.'
+      },
+      pc2: {
+        id: 'node-pc2',
+        name: 'Workstation 2 (PC B)',
+        type: 'pc',
+        icon: '💻',
+        ip: pc2Ip,
+        mask: calc.subnetMask,
+        cidr: calc.cidr,
+        gateway: gatewayIp,
+        mac: '00:1B:44:22:9C:12',
+        status: 'Inside Subnet Broadcast Domain',
+        desc: 'Peer client in the same subnet. Shares the same network prefix (' + calc.networkAddress + '/' + calc.cidr + ').'
+      },
+      laptop: {
+        id: 'node-laptop',
+        name: 'Dev Laptop (PC C)',
+        type: 'laptop',
+        icon: '📱',
+        ip: laptopIp,
+        mask: calc.subnetMask,
+        cidr: calc.cidr,
+        gateway: gatewayIp,
+        mac: 'F0:18:98:4C:E5:60',
+        status: 'Inside Subnet Broadcast Domain',
+        desc: 'Portable host assigned an IP from the same DHCP pool. Communicates with PC1 without touching the router.'
+      },
+      server: {
+        id: 'node-server',
+        name: 'Subnet File & DB Server',
+        type: 'server',
+        icon: '🗄️',
+        ip: serverIp,
+        mask: calc.subnetMask,
+        cidr: calc.cidr,
+        gateway: gatewayIp,
+        mac: '00:50:56:A1:00:FE',
+        status: 'Inside Subnet Broadcast Domain',
+        desc: 'Internal departmental server located at the upper boundary of the usable host range (' + serverIp + ').'
+      },
+      external: {
+        id: 'node-external',
+        name: 'Remote Cloud Server (External Net)',
+        type: 'external',
+        icon: '☁️',
+        ip: externalIp,
+        mask: '255.255.255.0',
+        cidr: 24,
+        gateway: 'Remote WAN Gateway',
+        mac: 'DE:AD:BE:EF:00:01',
+        status: 'Outside Subnet Boundary',
+        desc: 'Located on an external, remote network. Any local host trying to reach this IP fails the local subnet check and forwards packets to the Router.'
+      }
+    };
+  }
+
+  // Render the Visual PC & Network Topology
+  function renderTopology(containerId, calc) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    activeTopologyCalc = calc;
+    const devices = getTopologyDevices(calc);
+
+    const html = `
+      <div class="topo-control-bar glass-panel">
+        <div class="topo-meta-title">
+          <span class="topo-live-pulse"></span>
+          <div>
+            <strong class="topo-heading">Subnet Local Area Network (LAN) Architecture</strong>
+            <span class="topo-sub">Visualizing how PCs, Switches, and Default Gateways interact using the Subnet Mask</span>
+          </div>
+        </div>
+
+        <div class="topo-sim-actions">
+          <button class="sim-btn sim-local" onclick="window.runTopologySim('local')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+            <span>Simulate Intra-Subnet Ping (PC 1 &rarr; PC 2)</span>
+          </button>
+          <button class="sim-btn sim-wan" onclick="window.runTopologySim('wan')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <span>Simulate External WAN Ping (PC 1 &rarr; Cloud)</span>
+          </button>
+          <button class="sim-btn sim-bcast" onclick="window.runTopologySim('broadcast')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            <span>Simulate Broadcast (PC 1 &rarr; ${calc.broadcastAddress})</span>
+          </button>
+          <button class="action-btn" onclick="window.resetTopologySim()" title="Clear Simulation &amp; Log">Reset</button>
+        </div>
+      </div>
+
+      <div class="topo-canvas-container" id="topoCanvasContainer">
+        
+        <div id="topoPacketOverlay" class="topo-packet-overlay"></div>
+
+        <div class="topo-tier topo-tier-wan">
+          
+          <div class="topo-node-card node-wan" id="node-internet" onclick="window.inspectTopologyNode('external')">
+            <div class="node-icon-bubble">🌐</div>
+            <div class="node-content">
+              <span class="node-name">Internet / WAN Cloud</span>
+              <span class="node-ip mono text-dim">Public Routing Fabric</span>
+            </div>
+          </div>
+
+          <div class="topo-cable topo-cable-vertical" id="cable-wan-router"></div>
+
+          <div class="topo-node-card node-remote-host" id="node-external" onclick="window.inspectTopologyNode('external')">
+            <div class="node-icon-bubble">☁️</div>
+            <div class="node-content">
+              <span class="node-name">Remote Cloud Server</span>
+              <span class="node-ip mono text-amber">${devices.external.ip}</span>
+              <span class="node-role badge badge-dim">Different Subnet</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="topo-tier topo-tier-router">
+          <div class="topo-node-card node-gateway" id="node-router" onclick="window.inspectTopologyNode('router')">
+            <div class="node-icon-bubble">🛡️</div>
+            <div class="node-content">
+              <div class="node-header-row">
+                <span class="node-name">Default Gateway (Router)</span>
+                <span class="badge badge-cyan">Exit Gateway</span>
+              </div>
+              <span class="node-ip mono text-cyan">${devices.router.ip}</span>
+              <span class="node-role text-dim">Subnet Interface &bull; Subnet Mask: ${calc.subnetMask}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="topo-cable topo-cable-vertical" id="cable-router-switch"></div>
+
+        <div class="topo-subnet-domain-box" id="subnetDomainBox">
+          <div class="domain-header">
+            <div class="domain-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <span>Subnet Broadcast Domain &bull; <strong class="mono text-cyan">${calc.networkAddress}/${calc.cidr}</strong></span>
+            </div>
+            <div class="domain-tags">
+              <span class="tag tag-cyan">Mask: ${calc.subnetMask}</span>
+              <span class="tag tag-dim">Broadcast: ${calc.broadcastAddress}</span>
+              <span class="tag tag-dim">${calc.usableHosts.toLocaleString()} Usable Hosts</span>
+            </div>
+          </div>
+
+          <div class="topo-switch-row">
+            <div class="topo-node-card node-switch" id="node-switch" onclick="window.inspectTopologyNode('switch')">
+              <div class="node-icon-bubble">🔀</div>
+              <div class="node-content">
+                <span class="node-name">Core Subnet Switch</span>
+                <span class="node-ip mono text-dim">Layer 2 Broadcast Domain Boundary</span>
+              </div>
+            </div>
+          </div>
+
+          <svg class="topo-svg-cables" viewBox="0 0 1000 70" preserveAspectRatio="none">
+            <path id="path-sw-pc1" d="M 500 0 L 120 70" stroke="rgba(6, 182, 212, 0.45)" stroke-width="2" fill="none"></path>
+            <path id="path-sw-pc2" d="M 500 0 L 370 70" stroke="rgba(6, 182, 212, 0.45)" stroke-width="2" fill="none"></path>
+            <path id="path-sw-laptop" d="M 500 0 L 630 70" stroke="rgba(6, 182, 212, 0.45)" stroke-width="2" fill="none"></path>
+            <path id="path-sw-server" d="M 500 0 L 880 70" stroke="rgba(6, 182, 212, 0.45)" stroke-width="2" fill="none"></path>
+          </svg>
+
+          <div class="topo-hosts-grid">
+            
+            <div class="topo-node-card node-host" id="node-pc1" onclick="window.inspectTopologyNode('pc1')">
+              <div class="node-icon-bubble">🖥️</div>
+              <div class="node-content">
+                <span class="node-name">Workstation 1 (PC A)</span>
+                <span class="node-ip mono text-cyan">${devices.pc1.ip}</span>
+                <span class="node-role text-dim">Subnet Mask: ${calc.subnetMask}</span>
+              </div>
+            </div>
+
+            <div class="topo-node-card node-host" id="node-pc2" onclick="window.inspectTopologyNode('pc2')">
+              <div class="node-icon-bubble">💻</div>
+              <div class="node-content">
+                <span class="node-name">Workstation 2 (PC B)</span>
+                <span class="node-ip mono text-purple">${devices.pc2.ip}</span>
+                <span class="node-role text-dim">Same Subnet Host</span>
+              </div>
+            </div>
+
+            <div class="topo-node-card node-host" id="node-laptop" onclick="window.inspectTopologyNode('laptop')">
+              <div class="node-icon-bubble">📱</div>
+              <div class="node-content">
+                <span class="node-name">Dev Laptop (PC C)</span>
+                <span class="node-ip mono text-emerald">${devices.laptop.ip}</span>
+                <span class="node-role text-dim">DHCP Client Host</span>
+              </div>
+            </div>
+
+            <div class="topo-node-card node-host" id="node-server" onclick="window.inspectTopologyNode('server')">
+              <div class="node-icon-bubble">🗄️</div>
+              <div class="node-content">
+                <span class="node-name">Internal Server</span>
+                <span class="node-ip mono text-amber">${devices.server.ip}</span>
+                <span class="node-role text-dim">Upper Usable Host Boundary</span>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="domain-footer-note">
+            <span>🔒 All packets between PC 1, PC 2, Laptop, and Server remain inside this broadcast domain and <strong>NEVER</strong> cross the router!</span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="topo-info-split">
+        
+        <div class="topo-log-panel glass-panel">
+          <div class="log-panel-header">
+            <div class="log-title">
+              <span class="terminal-dot red"></span>
+              <span class="terminal-dot yellow"></span>
+              <span class="terminal-dot green"></span>
+              <span style="margin-left: 8px; font-weight: 700;">Subnet Decision Engine &amp; Packet Flow Log</span>
+            </div>
+            <span id="topoSimStatus" class="badge badge-dim">Idle &bull; Ready</span>
+          </div>
+          <div class="log-panel-body" id="topoTerminalLog">
+            <div class="log-entry log-system">
+              <span class="log-time">[System Ready]</span>
+              <span class="log-text">Subnet ${calc.networkAddress}/${calc.cidr} initialized. Click a simulation button above to inspect how the Subnet Mask routes packets.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="topo-inspector-panel glass-panel" id="topoInspectorPanel">
+          <div class="inspector-header">
+            <span class="inspector-title">Device Network Card (NIC) Inspector</span>
+            <span id="inspectDeviceType" class="badge badge-cyan">PC Host</span>
+          </div>
+          <div class="inspector-body" id="topoInspectorBody">
+            <div class="inspector-prop-row">
+              <span class="prop-key">Device:</span>
+              <strong class="prop-val" id="inspectDevName">Workstation 1 (PC A)</strong>
+            </div>
+            <div class="inspector-prop-row">
+              <span class="prop-key">IPv4 Address:</span>
+              <span class="prop-val mono text-cyan" id="inspectDevIp">${devices.pc1.ip}</span>
+            </div>
+            <div class="inspector-prop-row">
+              <span class="prop-key">Subnet Mask:</span>
+              <span class="prop-val mono" id="inspectDevMask">${calc.subnetMask} (/${calc.cidr})</span>
+            </div>
+            <div class="inspector-prop-row">
+              <span class="prop-key">Default Gateway:</span>
+              <span class="prop-val mono text-purple" id="inspectDevGateway">${devices.pc1.gateway}</span>
+            </div>
+            <div class="inspector-prop-row">
+              <span class="prop-key">Network Address:</span>
+              <span class="prop-val mono text-emerald" id="inspectDevNet">${calc.networkAddress}</span>
+            </div>
+            <div class="inspector-prop-row">
+              <span class="prop-key">MAC Address:</span>
+              <span class="prop-val mono text-dim" id="inspectDevMac">${devices.pc1.mac}</span>
+            </div>
+            <div class="inspector-prop-row">
+              <span class="prop-key">Subnet Logic:</span>
+              <span class="prop-val text-dim" id="inspectDevLogic">(${devices.pc1.ip} &amp; ${calc.subnetMask}) = ${calc.networkAddress}</span>
+            </div>
+            <div class="inspector-desc" id="inspectDevDesc">${devices.pc1.desc}</div>
+          </div>
+        </div>
+
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  // Device inspection handler
+  window.inspectTopologyNode = (devKey) => {
+    if (!activeTopologyCalc) return;
+    const devices = getTopologyDevices(activeTopologyCalc);
+    const dev = devices[devKey];
+    if (!dev) return;
+
+    document.querySelectorAll('.topo-node-card').forEach(el => el.classList.remove('active-inspected'));
+    const activeEl = document.getElementById(dev.id);
+    if (activeEl) activeEl.classList.add('active-inspected');
+
+    const nameEl = document.getElementById('inspectDevName');
+    const ipEl = document.getElementById('inspectDevIp');
+    const maskEl = document.getElementById('inspectDevMask');
+    const gwEl = document.getElementById('inspectDevGateway');
+    const netEl = document.getElementById('inspectDevNet');
+    const macEl = document.getElementById('inspectDevMac');
+    const logicEl = document.getElementById('inspectDevLogic');
+    const descEl = document.getElementById('inspectDevDesc');
+    const typeBadge = document.getElementById('inspectDeviceType');
+
+    if (nameEl) nameEl.textContent = dev.name;
+    if (ipEl) ipEl.textContent = dev.ip;
+    if (maskEl) maskEl.textContent = `${dev.mask} (/${dev.cidr})`;
+    if (gwEl) gwEl.textContent = dev.gateway || 'N/A (L2 Device)';
+    if (netEl) netEl.textContent = activeTopologyCalc.networkAddress;
+    if (macEl) macEl.textContent = dev.mac;
+    if (descEl) descEl.textContent = dev.desc;
+    if (typeBadge) {
+      typeBadge.textContent = dev.status;
+      typeBadge.className = devKey === 'external' ? 'badge badge-amber' : 'badge badge-cyan';
+    }
+    if (logicEl) {
+      if (dev.ip.includes('.')) {
+        logicEl.textContent = `(${dev.ip} & ${dev.mask}) = ${activeTopologyCalc.networkAddress}`;
+      } else {
+        logicEl.textContent = 'Transparent Layer 2 Frame Switching';
+      }
+    }
+  };
+
+  // Run Animated Packet Simulation
+  window.runTopologySim = (simType) => {
+    if (!activeTopologyCalc) return;
+    const calc = activeTopologyCalc;
+    const devices = getTopologyDevices(calc);
+    const terminal = document.getElementById('topoTerminalLog');
+    const statusBadge = document.getElementById('topoSimStatus');
+    const overlay = document.getElementById('topoPacketOverlay');
+
+    if (activeSimulationTimer) clearTimeout(activeSimulationTimer);
+    if (overlay) overlay.innerHTML = '';
+    if (terminal) terminal.innerHTML = '';
+
+    const addLog = (step, title, detail, type = 'info') => {
+      if (!terminal) return;
+      const entry = document.createElement('div');
+      entry.className = `log-entry log-${type}`;
+      entry.innerHTML = `
+        <span class="log-time">[${step}]</span>
+        <strong class="log-title">${title}</strong>
+        <span class="log-detail">${detail}</span>
+      `;
+      terminal.appendChild(entry);
+      terminal.scrollTop = terminal.scrollHeight;
+    };
+
+    const highlightNode = (nodeId, glowing = true) => {
+      const el = document.getElementById(nodeId);
+      if (el) {
+        if (glowing) el.classList.add('node-active-pulse');
+        else el.classList.remove('node-active-pulse');
+      }
+    };
+
+    if (simType === 'local') {
+      if (statusBadge) {
+        statusBadge.textContent = 'Simulating: Intra-Subnet Ping';
+        statusBadge.className = 'badge badge-cyan';
+      }
+
+      addLog('Step 1', 'Subnet Mask Evaluation', `PC 1 (${devices.pc1.ip}) checks destination ${devices.pc2.ip} against Subnet Mask ${calc.subnetMask}:`);
+      addLog('Bitwise', 'Local Subnet Match', `(${devices.pc1.ip} &amp; ${calc.subnetMask}) == (${devices.pc2.ip} &amp; ${calc.subnetMask}) &rarr; Both equal Network ID ${calc.networkAddress}!`, 'cyan');
+      highlightNode('node-pc1', true);
+
+      activeSimulationTimer = setTimeout(() => {
+        addLog('Step 2', 'Packet Transmitted to Switch', `Target is LOCAL! PC 1 bypasses the Default Gateway and sends an Ethernet frame directly to Core Switch.`, 'info');
+        highlightNode('node-switch', true);
+
+        activeSimulationTimer = setTimeout(() => {
+          addLog('Step 3', 'Direct Layer 2 Delivery', `Switch forwards frame via MAC ${devices.pc2.mac} to Workstation 2 (PC B). The Router is NEVER contacted.`, 'emerald');
+          highlightNode('node-pc2', true);
+
+          activeSimulationTimer = setTimeout(() => {
+            addLog('Success', 'Ping Echo Reply Received', `Intra-subnet communication completed entirely within broadcast domain ${calc.networkAddress}/${calc.cidr} with 0.1ms latency!`, 'emerald');
+            if (statusBadge) {
+              statusBadge.textContent = 'Completed: Local Ping Success';
+              statusBadge.className = 'badge badge-emerald';
+            }
+          }, 800);
+        }, 800);
+      }, 700);
+    } else if (simType === 'wan') {
+      if (statusBadge) {
+        statusBadge.textContent = 'Simulating: External Gateway Routing';
+        statusBadge.className = 'badge badge-purple';
+      }
+
+      addLog('Step 1', 'Subnet Mask Evaluation', `PC 1 (${devices.pc1.ip}) checks destination ${devices.external.ip} against Subnet Mask ${calc.subnetMask}:`);
+      addLog('Bitwise', 'Subnet Mismatch Detected!', `(${devices.pc1.ip} &amp; ${calc.subnetMask}) &ne; (${devices.external.ip} &amp; ${calc.subnetMask}) &rarr; Target is on a REMOTE NETWORK!`, 'amber');
+      highlightNode('node-pc1', true);
+
+      activeSimulationTimer = setTimeout(() => {
+        addLog('Step 2', 'Redirected to Default Gateway', `PC 1 cannot reach target via direct ARP. Packet is addressed to Default Gateway MAC (${devices.router.ip}).`, 'info');
+        highlightNode('node-switch', true);
+
+        activeSimulationTimer = setTimeout(() => {
+          addLog('Step 3', 'Router Layer 3 Ingestion', `Router R1 receives packet on interface ${devices.router.ip}. It looks up routing table and forwards across WAN.`, 'purple');
+          highlightNode('node-router', true);
+
+          activeSimulationTimer = setTimeout(() => {
+            addLog('Step 4', 'Internet Cloud Delivery', `Packet travels across public WAN fabric to Remote Cloud Server (${devices.external.ip}).`, 'cyan');
+            highlightNode('node-external', true);
+
+            activeSimulationTimer = setTimeout(() => {
+              addLog('Success', 'Cross-Subnet Ping Verified', `Default Gateway (${devices.router.ip}) successfully routed packet across the subnet boundary.`, 'emerald');
+              if (statusBadge) {
+                statusBadge.textContent = 'Completed: Routed via Gateway';
+                statusBadge.className = 'badge badge-emerald';
+              }
+            }, 800);
+          }, 800);
+        }, 800);
+      }, 700);
+    } else if (simType === 'broadcast') {
+      if (statusBadge) {
+        statusBadge.textContent = 'Simulating: Subnet Broadcast Flood';
+        statusBadge.className = 'badge badge-amber';
+      }
+
+      addLog('Step 1', 'Broadcast Destination Identified', `PC 1 prepares packet for Subnet Broadcast Address ${calc.broadcastAddress} (MAC FF:FF:FF:FF:FF:FF).`, 'amber');
+      highlightNode('node-pc1', true);
+
+      activeSimulationTimer = setTimeout(() => {
+        addLog('Step 2', 'Switch Flood Within Domain', `Core Switch receives broadcast address and floods the packet to ALL active ports in this subnet simultaneously!`, 'info');
+        highlightNode('node-switch', true);
+        highlightNode('node-pc2', true);
+        highlightNode('node-laptop', true);
+        highlightNode('node-server', true);
+
+        activeSimulationTimer = setTimeout(() => {
+          addLog('Step 3', 'Router Broadcast Containment', `Router R1 drops the broadcast packet at interface ${devices.router.ip}. Broadcasts CANNOT cross router boundaries!`, 'rose');
+          highlightNode('node-router', false);
+
+          activeSimulationTimer = setTimeout(() => {
+            addLog('Boundary Rule', 'Broadcast Domain Contained', `All ${calc.usableHosts} hosts in ${calc.networkAddress}/${calc.cidr} received the broadcast, while external networks remained protected.`, 'emerald');
+            if (statusBadge) {
+              statusBadge.textContent = 'Completed: Broadcast Contained';
+              statusBadge.className = 'badge badge-amber';
+            }
+          }, 800);
+        }, 800);
+      }, 700);
+    }
+  };
+
+  window.resetTopologySim = () => {
+    if (activeSimulationTimer) clearTimeout(activeSimulationTimer);
+    document.querySelectorAll('.topo-node-card').forEach(el => {
+      el.classList.remove('node-active-pulse');
+      el.classList.remove('active-inspected');
+    });
+    const terminal = document.getElementById('topoTerminalLog');
+    const statusBadge = document.getElementById('topoSimStatus');
+    if (statusBadge) {
+      statusBadge.textContent = 'Idle &bull; Ready';
+      statusBadge.className = 'badge badge-dim';
+    }
+    if (terminal && activeTopologyCalc) {
+      terminal.innerHTML = `
+        <div class="log-entry log-system">
+          <span class="log-time">[Reset]</span>
+          <span class="log-text">Simulation cleared. Ready for next packet test on subnet ${activeTopologyCalc.networkAddress}/${activeTopologyCalc.cidr}.</span>
+        </div>
+      `;
+    }
+  };
+
+  return {
+    renderBitMatrix,
+    renderBitwiseAnd,
+    renderAddressSpectrum,
+    renderSubnetSlicer,
+    renderVLSM,
+    renderTopology
+  };
+})();
+
+window.SubnetVisualizer = SubnetVisualizer;
+
+
+
+/**
+ * SubnetForge - High Performance Ambient Network Grid & Packet Flow Canvas
+ * Renders glowing router nodes, dynamic links, and data packet pulses.
+ */
+
+class NetworkCanvas {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    if (!this.canvas) return;
+    this.ctx = this.canvas.getContext('2d');
+    this.nodes = [];
+    this.packets = [];
+    this.mouse = { x: -1000, y: -1000, radius: 140 };
+    this.animId = null;
+    this.isRunning = true;
+    this.maxNodes = 42;
+    this.connectionDistance = 140;
+
+    this.init();
+  }
+
+  init() {
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+
+    window.addEventListener('mousemove', (e) => {
+      this.mouse.x = e.clientX;
+      this.mouse.y = e.clientY;
+    });
+
+    window.addEventListener('mouseleave', () => {
+      this.mouse.x = -1000;
+      this.mouse.y = -1000;
+    });
+
+    this.spawnNodes();
+    this.animate();
+  }
+
+  resize() {
+    this.width = this.canvas.width = window.innerWidth;
+    this.height = this.canvas.height = window.innerHeight;
+  }
+
+  spawnNodes() {
+    this.nodes = [];
+    const count = Math.min(this.maxNodes, Math.floor((this.width * this.height) / 22000));
+    for (let i = 0; i < count; i++) {
+      this.nodes.push({
+        x: Math.random() * this.width,
+        y: Math.random() * this.height,
+        vx: (Math.random() - 0.5) * 0.45,
+        vy: (Math.random() - 0.5) * 0.45,
+        radius: Math.random() * 2.2 + 1.2,
+        pulsePhase: Math.random() * Math.PI * 2,
+        isHub: Math.random() > 0.85
+      });
+    }
+  }
+
+  spawnPacket(n1, n2) {
+    if (this.packets.length > 25) return;
+    this.packets.push({
+      start: n1,
+      end: n2,
+      progress: 0,
+      speed: 0.012 + Math.random() * 0.018,
+      color: Math.random() > 0.5 ? 'rgba(6, 182, 212, 0.9)' : 'rgba(139, 92, 246, 0.9)'
+    });
+  }
+
+  toggle() {
+    this.isRunning = !this.isRunning;
+    if (this.isRunning) {
+      this.animate();
+    } else {
+      cancelAnimationFrame(this.animId);
+      this.ctx.clearRect(0, 0, this.width, this.height);
+    }
+    return this.isRunning;
+  }
+
+  animate() {
+    if (!this.isRunning) return;
+
+    this.ctx.clearRect(0, 0, this.width, this.height);
+
+    const now = Date.now() * 0.002;
+    for (let i = 0; i < this.nodes.length; i++) {
+      const node = this.nodes[i];
+
+      node.x += node.vx;
+      node.y += node.vy;
+
+      if (node.x < 0 || node.x > this.width) node.vx *= -1;
+      if (node.y < 0 || node.y > this.height) node.vy *= -1;
+
+      const dx = this.mouse.x - node.x;
+      const dy = this.mouse.y - node.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist < this.mouse.radius) {
+        const force = (1 - dist / this.mouse.radius) * 0.8;
+        node.x -= (dx / dist) * force;
+        node.y -= (dy / dist) * force;
+      }
+
+      const pulse = 1 + Math.sin(now + node.pulsePhase) * 0.3;
+      const r = node.radius * pulse;
+
+      this.ctx.beginPath();
+      this.ctx.arc(node.x, node.y, r, 0, Math.PI * 2);
+      this.ctx.fillStyle = node.isHub ? 'rgba(34, 211, 238, 0.85)' : 'rgba(148, 163, 184, 0.45)';
+      this.ctx.fill();
+
+      if (node.isHub) {
+        this.ctx.beginPath();
+        this.ctx.arc(node.x, node.y, r * 2.4, 0, Math.PI * 2);
+        this.ctx.fillStyle = 'rgba(6, 182, 212, 0.12)';
+        this.ctx.fill();
+      }
+
+      for (let j = i + 1; j < this.nodes.length; j++) {
+        const other = this.nodes[j];
+        const lineDist = Math.hypot(node.x - other.x, node.y - other.y);
+
+        if (lineDist < this.connectionDistance) {
+          const alpha = (1 - lineDist / this.connectionDistance) * 0.16;
+          this.ctx.beginPath();
+          this.ctx.moveTo(node.x, node.y);
+          this.ctx.lineTo(other.x, other.y);
+          this.ctx.strokeStyle = `rgba(56, 189, 248, ${alpha})`;
+          this.ctx.lineWidth = 1;
+          this.ctx.stroke();
+
+          if (Math.random() < 0.0006) {
+            this.spawnPacket(node, other);
+          }
+        }
+      }
+    }
+
+    for (let k = this.packets.length - 1; k >= 0; k--) {
+      const p = this.packets[k];
+      p.progress += p.speed;
+
+      if (p.progress >= 1) {
+        this.packets.splice(k, 1);
+        continue;
+      }
+
+      const curX = p.start.x + (p.end.x - p.start.x) * p.progress;
+      const curY = p.start.y + (p.end.y - p.start.y) * p.progress;
+
+      this.ctx.beginPath();
+      this.ctx.arc(curX, curY, 2.2, 0, Math.PI * 2);
+      this.ctx.fillStyle = p.color;
+      this.ctx.shadowBlur = 8;
+      this.ctx.shadowColor = '#00f2fe';
+      this.ctx.fill();
+      this.ctx.shadowBlur = 0;
+    }
+
+    this.animId = requestAnimationFrame(() => this.animate());
+  }
+}
+
+window.NetworkCanvas = NetworkCanvas;
+
+
+
+/**
+ * SubnetForge - Main Application Controller
+ * Handles inputs, UI reactivity, tabs, clipboard copies, presets, and state synchronization.
+ */
+
+(() => {
+  // Application State
+  const state = {
+    ip: '192.168.1.1',
+    cidr: 24,
+    sliceTargetCidr: 26,
+    activeTab: 'visualizer',
+    vlsmRequirements: [
+      { name: 'Engineering & DevOps', hosts: 60 },
+      { name: 'Corporate Sales', hosts: 28 },
+      { name: 'Finance & HR', hosts: 12 },
+      { name: 'Router P2P Uplink', hosts: 2 }
+    ]
+  };
+
+  let currentCalc = null;
+  let networkCanvasInstance = null;
+
+  // DOM Elements cache
+  const elements = {};
+
+  function initElements() {
+    elements.ipInput = document.getElementById('ipInput');
+    elements.cidrSlider = document.getElementById('cidrSlider');
+    elements.cidrDisplay = document.getElementById('cidrDisplay');
+    elements.cidrDropdown = document.getElementById('cidrDropdown');
+    elements.ipStatusBadge = document.getElementById('ipStatusBadge');
+    elements.networkCanvas = document.getElementById('networkCanvas');
+    elements.bgToggleBtn = document.getElementById('bgToggleBtn');
+    elements.toastContainer = document.getElementById('toastContainer');
+  }
+
+  // Toast Notification System
+  function showToast(message, type = 'info') {
+    if (!elements.toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 6L9 17l-5-5"/>
+      </svg>
+      <span>${message}</span>
+    `;
+    elements.toastContainer.appendChild(toast);
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 3000);
+  }
+
+  // Copy to clipboard helper
+  window.copyToClipboard = (text, label = 'Value') => {
+    if (!navigator.clipboard) {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    } else {
+      navigator.clipboard.writeText(text);
+    }
+    showToast(`Copied ${label} to clipboard!`);
+  };
+
+  // Perform Calculation & Update all UI Elements
+  function updateCalculation() {
+    const rawIp = elements.ipInput.value.trim();
+    const cidr = parseInt(elements.cidrSlider.value, 10);
+
+    const calc = SubnetCalculator.calculate(rawIp, cidr);
+
+    if (calc.error) {
+      elements.ipStatusBadge.textContent = 'Invalid IP';
+      elements.ipStatusBadge.className = 'field-badge badge-rose';
+      return;
+    }
+
+    elements.ipStatusBadge.textContent = calc.scopeInfo.badge;
+    elements.ipStatusBadge.className = `field-badge badge-${calc.scopeInfo.color}`;
+
+    state.ip = rawIp;
+    state.cidr = cidr;
+    currentCalc = calc;
+
+    // Update Slider & Dropdown displays
+    elements.cidrDisplay.textContent = `/${cidr}`;
+    if (elements.cidrDropdown) {
+      elements.cidrDropdown.value = cidr;
+    }
+
+    // Update Meta Information
+    document.getElementById('metaIpClass').textContent = `Class ${calc.classInfo.class}`;
+    document.getElementById('metaIpScope').textContent = calc.scopeInfo.scope;
+    document.getElementById('metaBorrowedBits').textContent = `${calc.borrowedBits} bits (${calc.subnetsCount.toLocaleString()} subnets)`;
+    document.getElementById('metaHostBits').textContent = `${calc.hostBits} bits`;
+
+    // Update Result Metrics Cards
+    updateResultCard('cardNetworkAddress', calc.networkAddress, `First address &bull; /${calc.cidr}`);
+    updateResultCard('cardSubnetMask', calc.subnetMask, `Hex: ${calc.hexMask}`);
+    updateResultCard('cardUsableRange', calc.usableHostRange, `${calc.usableHosts.toLocaleString()} usable hosts`);
+    updateResultCard('cardBroadcastAddress', calc.broadcastAddress, `Direct broadcast IP`);
+    updateResultCard('cardWildcardMask', calc.wildcardMask, `Cisco ACL Inverse Mask`);
+    updateResultCard('cardTotalAddresses', calc.totalAddresses.toLocaleString(), `2^${calc.hostBits} total addresses`);
+
+    // Render Active Visualizers
+    renderActiveVisualizers(calc);
+
+    // Update configurations export
+    updateConfigs(calc);
+
+    // Sync URL hash without reloading
+    try {
+      if (typeof history !== 'undefined' && history.replaceState) {
+        history.replaceState(null, '', `#ip=${calc.ip}&cidr=${calc.cidr}`);
+      }
+    } catch (e) {}
+  }
+
+  function updateResultCard(elementId, value, subtext) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    const valEl = el.querySelector('.card-value');
+    const subEl = el.querySelector('.card-subtext');
+    if (valEl) valEl.textContent = value;
+    if (subEl) subEl.innerHTML = subtext;
+  }
+
+  function renderActiveVisualizers(calc) {
+    // 1. Bit matrix visualizer
+    SubnetVisualizer.renderBitMatrix('bitMatrixContainer', calc);
+
+    // 2. Bitwise AND visualizer
+    SubnetVisualizer.renderBitwiseAnd('bitwiseAndContainer', calc);
+
+    // 3. Proportional Address spectrum
+    SubnetVisualizer.renderAddressSpectrum('spectrumContainer', calc);
+
+    // 4. Visual PC Network Topology & Packet Simulation
+    SubnetVisualizer.renderTopology('topologyContainer', calc);
+
+    // 5. Subnet slicer
+    if (state.sliceTargetCidr <= calc.cidr) {
+      state.sliceTargetCidr = Math.min(30, calc.cidr + 2);
+    }
+    SubnetVisualizer.renderSubnetSlicer('slicerContainer', calc, state.sliceTargetCidr);
+
+    // 6. VLSM
+    recalculateVLSM();
+  }
+
+  function recalculateVLSM() {
+    if (!currentCalc) return;
+    const vlsm = SubnetCalculator.calculateVLSM(
+      currentCalc.networkAddress,
+      currentCalc.cidr,
+      state.vlsmRequirements
+    );
+    SubnetVisualizer.renderVLSM('vlsmContainer', vlsm);
+  }
+
+  function updateConfigs(calc) {
+    const configs = SubnetCalculator.generateConfigurations(calc);
+    const ciscoEl = document.getElementById('ciscoConfigCode');
+    const linuxEl = document.getElementById('linuxConfigCode');
+    const jsonEl = document.getElementById('jsonConfigCode');
+
+    if (ciscoEl) ciscoEl.textContent = configs.ciscoIOS;
+    if (linuxEl) linuxEl.textContent = configs.linuxNetplan;
+    if (jsonEl) jsonEl.textContent = configs.jsonExport;
+  }
+
+  // Populate CIDR dropdown with all 33 prefixes (/0 to /32)
+  function populateCidrDropdown() {
+    if (!elements.cidrDropdown) return;
+    elements.cidrDropdown.innerHTML = '';
+    for (let c = 32; c >= 0; c--) {
+      const maskStr = SubnetCalculator.uintToIp(SubnetCalculator.cidrToMaskUint(c));
+      const hosts = c === 32 ? 1 : c === 31 ? 2 : Math.max(0, Math.pow(2, 32 - c) - 2);
+      const option = document.createElement('option');
+      option.value = c;
+      option.textContent = `/${c} — ${maskStr} (${hosts.toLocaleString()} hosts)`;
+      elements.cidrDropdown.appendChild(option);
+    }
+  }
+
+  // Populate Quick Reference Cheat Sheet Table
+  function populateCheatSheet() {
+    const tableBody = document.getElementById('cheatSheetTableBody');
+    if (!tableBody) return;
+
+    let html = '';
+    for (let c = 0; c <= 32; c++) {
+      const mask = SubnetCalculator.uintToIp(SubnetCalculator.cidrToMaskUint(c));
+      const wildcard = SubnetCalculator.uintToIp((~SubnetCalculator.cidrToMaskUint(c)) >>> 0);
+      const total = Math.pow(2, 32 - c);
+      const usable = c === 32 ? 1 : c === 31 ? 2 : Math.max(0, total - 2);
+
+      let classHint = 'Classless / Supernet';
+      if (c === 8) classHint = 'Class A Default';
+      if (c === 16) classHint = 'Class B Default';
+      if (c === 24) classHint = 'Class C Default';
+      if (c === 30) classHint = 'Point-to-Point';
+      if (c === 32) classHint = 'Single Host';
+
+      html += `
+        <tr class="${c === state.cidr ? 'active-sheet-row' : ''}" onclick="window.setPresetCidr(${c})">
+          <td><strong class="text-cyan mono">/${c}</strong></td>
+          <td class="mono">${mask}</td>
+          <td class="mono text-dim">${wildcard}</td>
+          <td class="mono">${total.toLocaleString()}</td>
+          <td class="mono text-emerald font-bold">${usable.toLocaleString()}</td>
+          <td><span class="badge ${c === 24 || c === 16 || c === 8 ? 'badge-purple' : 'badge-dim'}">${classHint}</span></td>
+        </tr>
+      `;
+    }
+    tableBody.innerHTML = html;
+  }
+
+  // Global window functions for inline onclick handlers
+  window.onBitMatrixClick = (bitPos) => {
+    elements.cidrSlider.value = bitPos;
+    updateCalculation();
+    showToast(`CIDR Prefix set to /${bitPos}`);
+  };
+
+  window.onSliceCidrChange = (newCidr) => {
+    state.sliceTargetCidr = parseInt(newCidr, 10);
+    SubnetVisualizer.renderSubnetSlicer('slicerContainer', currentCalc, state.sliceTargetCidr);
+  };
+
+  window.applySlicedSubnet = (network, cidr) => {
+    elements.ipInput.value = network;
+    elements.cidrSlider.value = cidr;
+    updateCalculation();
+    showToast(`Loaded subnet: ${network}/${cidr}`);
+  };
+
+  window.setPreset = (ip, cidr) => {
+    elements.ipInput.value = ip;
+    elements.cidrSlider.value = cidr;
+    updateCalculation();
+    showToast(`Loaded preset: ${ip}/${cidr}`);
+  };
+
+  window.setPresetCidr = (cidr) => {
+    elements.cidrSlider.value = cidr;
+    updateCalculation();
+    showToast(`Prefix changed to /${cidr}`);
+  };
+
+  window.addVlsmRow = () => {
+    state.vlsmRequirements.push({ name: 'New Subnet', hosts: 10 });
+    renderVlsmInputs();
+    recalculateVLSM();
+  };
+
+  window.removeVlsmRow = (index) => {
+    if (state.vlsmRequirements.length <= 1) {
+      showToast('At least one subnet requirement is needed!', 'error');
+      return;
+    }
+    state.vlsmRequirements.splice(index, 1);
+    renderVlsmInputs();
+    recalculateVLSM();
+  };
+
+  function renderVlsmInputs() {
+    const container = document.getElementById('vlsmInputsContainer');
+    if (!container) return;
+
+    let html = '';
+    state.vlsmRequirements.forEach((req, idx) => {
+      html += `
+        <div class="vlsm-req-row">
+          <input type="text" class="dept-name" value="${req.name}" placeholder="Subnet Name" onchange="window.updateVlsmItem(${idx}, 'name', this.value)">
+          <input type="number" class="dept-hosts" value="${req.hosts}" min="1" max="65534" placeholder="Hosts" onchange="window.updateVlsmItem(${idx}, 'hosts', this.value)">
+          <button class="remove-req-btn" onclick="window.removeVlsmRow(${idx})" title="Remove Subnet">&times;</button>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+
+  window.updateVlsmItem = (index, field, value) => {
+    if (state.vlsmRequirements[index]) {
+      if (field === 'hosts') {
+        state.vlsmRequirements[index].hosts = Math.max(1, parseInt(value, 10) || 1);
+      } else {
+        state.vlsmRequirements[index].name = value;
+      }
+      recalculateVLSM();
+    }
+  };
+
+  // Tab switching logic
+  function setupTabs() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-tab');
+        tabButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('.tab-content-panel').forEach(p => p.classList.remove('active'));
+        const panel = document.getElementById(`panel-${targetTab}`);
+        if (panel) panel.classList.add('active');
+
+        state.activeTab = targetTab;
+
+        if (targetTab === 'cheatsheet') {
+          populateCheatSheet();
+        }
+      });
+    });
+  }
+
+  // Load from URL Hash if provided (e.g. #ip=10.0.0.1&cidr=22)
+  function loadFromHash() {
+    if (typeof window === 'undefined' || !window.location || !window.location.hash) return;
+    const hash = window.location.hash.substring(1);
+    if (!hash) return;
+
+    let ip = null;
+    let cidr = null;
+    if (typeof URLSearchParams !== 'undefined') {
+      const params = new URLSearchParams(hash);
+      ip = params.get('ip');
+      cidr = params.get('cidr');
+    } else {
+      const ipMatch = hash.match(/ip=([^&]+)/);
+      const cidrMatch = hash.match(/cidr=([^&]+)/);
+      if (ipMatch) ip = decodeURIComponent(ipMatch[1]);
+      if (cidrMatch) cidr = decodeURIComponent(cidrMatch[1]);
+    }
+
+    if (ip && SubnetCalculator.ipToUint(ip) !== null) {
+      elements.ipInput.value = ip;
+    }
+    if (cidr && !isNaN(cidr)) {
+      elements.cidrSlider.value = Math.min(32, Math.max(0, parseInt(cidr, 10)));
+    }
+  }
+
+  // Bind Events
+  function bindEvents() {
+    elements.ipInput.addEventListener('input', () => updateCalculation());
+
+    elements.cidrSlider.addEventListener('input', () => {
+      updateCalculation();
+    });
+
+    if (elements.cidrDropdown) {
+      elements.cidrDropdown.addEventListener('change', (e) => {
+        elements.cidrSlider.value = e.target.value;
+        updateCalculation();
+      });
+    }
+
+    if (elements.bgToggleBtn) {
+      elements.bgToggleBtn.addEventListener('click', () => {
+        if (networkCanvasInstance) {
+          const isRunning = networkCanvasInstance.toggle();
+          elements.bgToggleBtn.classList.toggle('active', isRunning);
+          showToast(isRunning ? 'Ambient Network Grid Enabled' : 'Ambient Network Grid Paused');
+        }
+      });
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (document.activeElement === elements.ipInput) return;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+        if (state.cidr < 32) {
+          elements.cidrSlider.value = state.cidr + 1;
+          updateCalculation();
+        }
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+        if (state.cidr > 0) {
+          elements.cidrSlider.value = state.cidr - 1;
+          updateCalculation();
+        }
+      }
+    });
+  }
+
+  // Initialization
+  function init() {
+    initElements();
+    populateCidrDropdown();
+    loadFromHash();
+    setupTabs();
+    bindEvents();
+    renderVlsmInputs();
+
+    // Start background canvas
+    networkCanvasInstance = new NetworkCanvas('networkCanvas');
+
+    // Run first calculation
+    updateCalculation();
+    populateCheatSheet();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+
+
+  </script>
+</body>
+</html>
+
